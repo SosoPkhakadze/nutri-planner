@@ -34,7 +34,7 @@ export default function Header() {
 
           {/* Navigation */}
           <nav className="flex items-center space-x-6">
-            <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-6">
               <Link href="/" className={navLinkClasses('/')}>
                 Dashboard
               </Link>
@@ -44,8 +44,11 @@ export default function Header() {
               <Link href="/food-db" className={navLinkClasses('/food-db')}>
                 Food DB
               </Link>
+              {/* ADD THIS LINK */}
+              <Link href="/templates" className={navLinkClasses('/templates')}>
+                Templates
+              </Link>
             </div>
-            
             <NoSsr>
               <ThemeToggle />
             </NoSsr>

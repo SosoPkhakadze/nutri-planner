@@ -59,3 +59,88 @@ export async function saveDayAsTemplate(formData: FormData) {
 
   return { success: true };
 }
+
+export async function applyTemplateToDate(templateId: string, date: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    // 1. Fetch the template data, ensuring the user owns it
+    const { data: template, error: templateError } = await supabase
+      .from('templates')
+      .select('data')
+      .eq('id', templateId)
+      .eq('user_id', user.id)
+      .single();
+  
+    if (templateError || !template) {
+      return { error: 'Template not found.' };
+    }
+  
+    // 2. Delete any existing meals on the target date to prevent duplicates
+    const { error: deleteError } = await supabase
+      .from('meals')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('date', date);
+    
+    if (deleteError) {
+      console.error("Error clearing existing meals:", deleteError);
+      return { error: 'Could not clear existing meals for that day.' };
+    }
+  
+    // 3. Create new meals based on the template data
+    const templateMeals = template.data as any[];
+    
+    const newMeals = templateMeals.map(meal => ({
+      user_id: user.id,
+      date: date,
+      name: meal.name,
+      time: meal.time,
+      notes: meal.notes,
+      order_index: meal.order_index,
+    }));
+  
+    const { data: insertedMeals, error: insertMealsError } = await supabase
+      .from('meals')
+      .insert(newMeals)
+      .select();
+  
+    if (insertMealsError || !insertedMeals) {
+      console.error("Error inserting template meals:", insertMealsError);
+      return { error: 'Could not create new meals from the template.' };
+    }
+  
+    // 4. Create the associated meal_foods for the new meals
+    const newMealFoods: any[] = [];
+    for (let i = 0; i < templateMeals.length; i++) {
+      const templateMeal = templateMeals[i];
+      const newMeal = insertedMeals[i];
+      
+      for (const food of templateMeal.foods) {
+        newMealFoods.push({
+          meal_id: newMeal.id,
+          food_item_id: food.food_item_id,
+          weight_g: food.weight_g,
+          custom_nutrition: food.custom_nutrition,
+        });
+      }
+    }
+  
+    if (newMealFoods.length > 0) {
+      const { error: insertFoodsError } = await supabase
+        .from('meal_foods')
+        .insert(newMealFoods);
+  
+      if (insertFoodsError) {
+        console.error("Error inserting template foods:", insertFoodsError);
+        return { error: 'Could not add foods from the template.' };
+      }
+    }
+    
+    // 5. Revalidate paths to show the new data
+    revalidatePath('/');
+    revalidatePath('/planner');
+    
+    return { success: true };
+  }
