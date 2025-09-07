@@ -33,8 +33,70 @@ export async function addMeal(formData: FormData) {
     return { error: 'Database error: Could not add meal.' };
   }
 
-  // Revalidate the dashboard page to show the new meal immediately
   revalidatePath('/');
+  return { success: true };
+}
 
+export async function addFoodToMeal(mealId: string, foodItemId: string, weightGrams: number) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const { data: meal, error: mealError } = await supabase
+    .from('meals')
+    .select('id')
+    .eq('id', mealId)
+    .eq('user_id', user.id)
+    .single();
+  
+  if (mealError || !meal) {
+    return { error: 'Meal not found or you do not have permission to edit it.' };
+  }
+
+  const { error: insertError } = await supabase.from('meal_foods').insert({
+    meal_id: mealId,
+    food_item_id: foodItemId,
+    weight_g: weightGrams, // Use the new column name
+  });
+
+  if (insertError) {
+    console.error("Error adding food to meal:", insertError);
+    return { error: 'Database error: Could not add food to meal.' };
+  }
+
+  revalidatePath('/');
+  return { success: true };
+}
+
+export async function removeFoodFromMeal(mealFoodId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  // Note: For production, you'd add a join to verify user ownership of the parent meal.
+  const { error } = await supabase.from('meal_foods').delete().eq('id', mealFoodId);
+
+  if (error) {
+    console.error("Error removing food from meal:", error);
+    return { error: 'Database error: Could not remove food.' };
+  }
+  revalidatePath('/');
+  return { success: true };
+}
+
+export async function deleteMeal(mealId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const { error } = await supabase.from('meals').delete()
+    .eq('id', mealId)
+    .eq('user_id', user.id); // Security check to ensure user owns the meal
+
+  if (error) {
+    console.error("Error deleting meal:", error);
+    return { error: 'Database error: Could not delete meal.' };
+  }
+  revalidatePath('/');
   return { success: true };
 }

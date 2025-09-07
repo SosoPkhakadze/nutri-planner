@@ -31,7 +31,13 @@ export default async function DashboardPage() {
   const today = new Date().toISOString().split('T')[0];
   const { data: meals } = await supabase
     .from('meals')
-    .select('*')
+    .select(`
+      *,
+      meal_foods (
+        *,
+        food_items (*)
+      )
+    `)
     .eq('user_id', user.id)
     .eq('date', today)
     .order('time', { ascending: true });
