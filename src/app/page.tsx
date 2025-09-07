@@ -1,4 +1,4 @@
-// src/app/page.tsx (COMPLETE CODE FOR STEP 11)
+// src/app/page.tsx (COMPLETE CODE FOR STEP 12)
 
 import Header from "@/components/Header";
 import Card from "@/components/ui/Card";
@@ -6,8 +6,8 @@ import ProgressRing from "@/components/ui/ProgressRing";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PlusCircle } from 'lucide-react';
-import AddMealModal from "@/components/meals/AddMealModal"; // Import the modal
-import MealCard, { type Meal } from "@/components/meals/MealCard"; // Import the meal card and type
+import AddMealModal from "@/components/meals/AddMealModal";
+import MealCard from "@/components/meals/MealCard";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -19,7 +19,7 @@ export default async function DashboardPage() {
   
   const { data: userProfile } = await supabase
     .from('user_profiles')
-    .select('*') // Fetch all profile data now
+    .select('*')
     .eq('id', user.id)
     .single();
 
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     return redirect('/onboarding/1');
   }
 
-  // --- NEW: Fetch today's meals ---
+  // --- Fetch today's meals ---
   const today = new Date().toISOString().split('T')[0];
   const { data: meals } = await supabase
     .from('meals')
@@ -35,7 +35,12 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .eq('date', today)
     .order('time', { ascending: true });
-  // --- End fetch ---
+
+  // --- Fetch available food items for the user ---
+  const { data: foodItems } = await supabase
+    .from('food_items')
+    .select('*')
+    .or(`owner_user_id.eq.${user.id},verified.eq.true`);
 
   // --- Mock Data (for now) ---
   const consumedCalories = 1250;
@@ -50,7 +55,6 @@ export default async function DashboardPage() {
   
   const consumedFat = 45;
   const targetFat = 60;
-  
   // --- End Mock Data ---
 
   return (
@@ -61,7 +65,7 @@ export default async function DashboardPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">Today's Dashboard</h1>
-            <p className="text-muted-gray">Welcome back, {user.email}</p>
+            <p className="text-gray-400">Welcome back, {user.email}</p>
           </div>
           <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2">
             <PlusCircle size={18} />
@@ -77,21 +81,19 @@ export default async function DashboardPage() {
             <Card className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Today's Schedule</h2>
-                {/* Only show the modal button if there are already meals */}
                 {meals && meals.length > 0 && <AddMealModal />}
               </div>
 
-              {/* Conditional rendering for meals */}
               {meals && meals.length > 0 ? (
                 <div>
                   {meals.map((meal) => (
-                    <MealCard key={meal.id} meal={meal as Meal} />
+                    <MealCard key={meal.id} meal={meal} foodItems={foodItems || []} />
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg">
-                  <p className="text-muted-gray">No meals scheduled for today.</p>
-                  <AddMealModal /> {/* Show modal button here for the empty state */}
+                  <p className="text-gray-400">No meals scheduled for today.</p>
+                  <AddMealModal />
                 </div>
               )}
             </Card>
@@ -105,7 +107,7 @@ export default async function DashboardPage() {
                 <ProgressRing progress={calorieProgress} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-2xl font-bold">{consumedCalories}</span>
-                  <span className="text-sm text-muted-gray">/ {targetCalories}</span>
+                  <span className="text-sm text-gray-400">/ {targetCalories}</span>
                 </div>
               </div>
             </Card>
