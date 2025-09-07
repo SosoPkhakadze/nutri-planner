@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { PlusCircle } from 'lucide-react';
 import AddMealModal from "@/components/meals/AddMealModal";
 import MealCard from "@/components/meals/MealCard";
+import SaveDayAsTemplateModal from "@/components/templates/SaveDayAsTemplateModal";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -78,6 +79,9 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold">Today's Dashboard</h1>
             <p className="text-gray-400">Welcome back, {user.email}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <SaveDayAsTemplateModal date={today} hasMeals={(meals?.length || 0) > 0} />
           </div>
           <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2">
             <PlusCircle size={18} />
