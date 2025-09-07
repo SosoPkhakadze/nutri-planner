@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,11 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark"> {/* Default to dark mode */}
-      <body 
-        className={`${inter.className} bg-surface-light dark:bg-primary-deep-blue text-text-dark dark:text-surface-light`}
-      >
-        {/* We will add the Header component later once we decide which pages it should appear on. */}
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 antialiased`}>
         <main>{children}</main>
       </body>
     </html>

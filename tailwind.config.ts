@@ -2,7 +2,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class", // Enable class-based dark mode
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,18 +10,23 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        // Your custom palette from the project brief
-        "primary-deep-blue": "#0B2B4A",
-        "accent-cyan-blue": "#2EC4B6",
-        "secondary-slate": "#1E3A5F",
-        "muted-gray": "#9FB3C8",
-        "surface-light": "#F6F9FB",
-        "text-dark": "#0B1828",
-        "dark-card": "#0F2E46",
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
     },
   },
   plugins: [],
 };
+
 export default config;
