@@ -100,3 +100,27 @@ export async function deleteMeal(mealId: string) {
   revalidatePath('/');
   return { success: true };
 }
+
+export async function updateMealFoodWeight(mealFoodId: string, newWeight: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+    
+    if (newWeight <= 0) {
+      return { error: 'Weight must be a positive number.' };
+    }
+  
+    // Again, a production app would join to verify ownership here
+    const { error } = await supabase
+      .from('meal_foods')
+      .update({ weight_g: newWeight })
+      .eq('id', mealFoodId);
+  
+    if (error) {
+      console.error("Error updating meal food:", error);
+      return { error: 'Database error: Could not update item.' };
+    }
+  
+    revalidatePath('/');
+    return { success: true };
+  }

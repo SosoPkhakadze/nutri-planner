@@ -2,7 +2,6 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 // This is the data type we expect from the client-side store
 interface OnboardingData {
@@ -23,10 +22,15 @@ export async function completeOnboarding(data: OnboardingData) {
     return { error: 'You must be logged in to complete onboarding.' };
   }
 
+  const baselineData = {
+    baseline_calories: 2500,
+    baseline_macros: { protein_g: 180, carbs_g: 250, fat_g: 80 }
+  };
+
   const { error } = await supabase.from('user_profiles').insert({
-    id: user.id, // Link to the user's auth ID
-    // Spread the rest of the data from the form
+    id: user.id,
     ...data,
+    ...baselineData, // Merge the baseline data
   });
 
   if (error) {
