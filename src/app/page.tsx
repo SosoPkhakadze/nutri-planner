@@ -1,10 +1,13 @@
-// src/app/page.tsx (DASHBOARD REFACTOR)
+// src/app/page.tsx (COMPLETE CODE FOR STEP 11)
+
 import Header from "@/components/Header";
 import Card from "@/components/ui/Card";
 import ProgressRing from "@/components/ui/ProgressRing";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { BarChart, Droplet, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
+import AddMealModal from "@/components/meals/AddMealModal"; // Import the modal
+import MealCard, { type Meal } from "@/components/meals/MealCard"; // Import the meal card and type
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -23,6 +26,16 @@ export default async function DashboardPage() {
   if (!userProfile) {
     return redirect('/onboarding/1');
   }
+
+  // --- NEW: Fetch today's meals ---
+  const today = new Date().toISOString().split('T')[0];
+  const { data: meals } = await supabase
+    .from('meals')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .order('time', { ascending: true });
+  // --- End fetch ---
 
   // --- Mock Data (for now) ---
   const consumedCalories = 1250;
@@ -62,13 +75,25 @@ export default async function DashboardPage() {
           {/* Left Column: Schedule */}
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Today's Schedule</h2>
-              <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg">
-                <p className="text-muted-gray">No meals scheduled for today.</p>
-                <button className="mt-4 text-cyan-400 hover:underline">
-                  Add your first meal
-                </button>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Today's Schedule</h2>
+                {/* Only show the modal button if there are already meals */}
+                {meals && meals.length > 0 && <AddMealModal />}
               </div>
+
+              {/* Conditional rendering for meals */}
+              {meals && meals.length > 0 ? (
+                <div>
+                  {meals.map((meal) => (
+                    <MealCard key={meal.id} meal={meal as Meal} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg">
+                  <p className="text-muted-gray">No meals scheduled for today.</p>
+                  <AddMealModal /> {/* Show modal button here for the empty state */}
+                </div>
+              )}
             </Card>
           </div>
 
