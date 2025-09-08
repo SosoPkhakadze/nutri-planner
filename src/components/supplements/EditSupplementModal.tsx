@@ -48,11 +48,11 @@ export default function EditSupplementModal({ supplement, children, onSuccess }:
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="dosage_amount" className="block text-sm font-medium">Dosage</label>
-                <input type="number" step="0.1" name="dosage_amount" defaultValue={supplement.dosage_amount || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
+                <label htmlFor="dosage_amount" className="block text-sm font-medium">Dosage Amount</label>
+                <input type="number" step="any" name="dosage_amount" defaultValue={supplement.dosage_amount || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
               <div>
-                <label htmlFor="dosage_unit" className="block text-sm font-medium">Unit</label>
+                <label htmlFor="dosage_unit" className="block text-sm font-medium">Dosage Unit</label>
                 <input type="text" name="dosage_unit" defaultValue={supplement.dosage_unit || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
             </div>

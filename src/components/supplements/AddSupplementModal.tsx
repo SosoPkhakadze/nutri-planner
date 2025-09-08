@@ -4,7 +4,7 @@
 import { useRef, useTransition } from 'react';
 import { addSupplement } from '@/app/actions/tracking';
 import { PlusCircle } from 'lucide-react';
-import { type Supplement } from '@/lib/types'; // Import the centralized type
+import { type Supplement } from '@/lib/types';
 
 interface AddSupplementModalProps {
   onSuccess?: (newSupplement: Supplement) => void;
@@ -53,11 +53,11 @@ export default function AddSupplementModal({ onSuccess }: AddSupplementModalProp
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="dosage_amount" className="block text-sm font-medium">Dosage</label>
-                <input type="number" step="0.1" name="dosage_amount" placeholder="e.g., 5" className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
+                <label htmlFor="dosage_amount" className="block text-sm font-medium">Dosage Amount</label>
+                <input type="number" step="any" name="dosage_amount" placeholder="e.g., 5" className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
               <div>
-                <label htmlFor="dosage_unit" className="block text-sm font-medium">Unit</label>
+                <label htmlFor="dosage_unit" className="block text-sm font-medium">Dosage Unit</label>
                 <input type="text" name="dosage_unit" placeholder="g, mg, capsule" className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
             </div>

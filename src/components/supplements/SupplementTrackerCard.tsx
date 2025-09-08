@@ -7,6 +7,7 @@ import { Pill } from 'lucide-react';
 import { logSupplement, unlogSupplement } from '@/app/actions/tracking';
 import Link from 'next/link';
 
+// Use a more specific type that matches the data we receive
 type Supplement = {
   id: string;
   name: string;
@@ -18,6 +19,16 @@ interface SupplementTrackerCardProps {
   activeSupplements: Supplement[];
   loggedSupplementIds: string[];
   date: string;
+}
+
+// Re-use the same clear formatting logic here
+function formatDosage(sup: Supplement): string {
+    const amount = sup.dosage_amount;
+    const unit = sup.dosage_unit;
+    if (amount && unit) return `${amount} ${unit}`;
+    if (amount) return `${amount}`;
+    if (unit) return unit;
+    return ''; // Return empty if no details, as it's a checklist
 }
 
 export default function SupplementTrackerCard({ 
@@ -48,6 +59,7 @@ export default function SupplementTrackerCard({
         <ul className="space-y-3">
           {activeSupplements.map(sup => {
             const isLogged = loggedSupplementIds.includes(sup.id);
+            const dosageString = formatDosage(sup); // Use the helper
             return (
               <li key={sup.id}>
                 <label className="flex items-center p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition-colors">
@@ -58,11 +70,12 @@ export default function SupplementTrackerCard({
                     disabled={isPending}
                     className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600"
                   />
-                  <div className="ml-3">
-                    <p className={`font-medium ${isLogged ? 'line-through text-gray-400' : ''}`}>{sup.name}</p>
-                    {sup.dosage_amount && sup.dosage_unit && (
-                      <p className={`text-sm text-gray-400 ${isLogged ? 'line-through' : ''}`}>
-                        {sup.dosage_amount} {sup.dosage_unit}
+                  <div className="ml-3 min-w-0">
+                    <p className={`font-medium truncate ${isLogged ? 'line-through text-gray-400' : ''}`}>{sup.name}</p>
+                    {/* Only show dosage string if it's not empty */}
+                    {dosageString && (
+                      <p className={`text-sm text-gray-400 truncate ${isLogged ? 'line-through' : ''}`}>
+                        {dosageString}
                       </p>
                     )}
                   </div>

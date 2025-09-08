@@ -8,24 +8,23 @@ import { deleteSupplement, toggleSupplementActive } from '@/app/actions/tracking
 import { Pencil } from 'lucide-react';
 import EditSupplementModal from './EditSupplementModal';
 import AddSupplementModal from './AddSupplementModal';
-import { type Supplement } from '@/lib/types'; // Import the centralized type
+import { type Supplement } from '@/lib/types';
 
 interface SupplementListProps {
   initialSupplements: Supplement[];
 }
 
-// Helper function to format the dosage string more intelligently
+// FINAL, HUMAN-READABLE HELPER FUNCTIONS
 function formatDosage(sup: Supplement): string {
-    if (sup.dosage_amount !== null && sup.dosage_amount > 0) {
-        return [sup.dosage_amount, sup.dosage_unit].filter(Boolean).join(' ');
-    }
-    if (sup.dosage_unit) {
-        return sup.dosage_unit;
-    }
-    return '';
+    const amount = sup.dosage_amount;
+    const unit = sup.dosage_unit;
+    // Always prefix with "Take" for clarity
+    if (amount && unit) return `Take: ${amount} ${unit}`;
+    if (amount) return `Take: ${amount}`;
+    if (unit) return `Take: ${unit}`;
+    return 'Dosage not set'; // Fallback for clarity
 }
 
-// Helper function to format the nutrition string
 function formatNutrition(sup: Supplement): string {
     const parts = [];
     if (sup.calories_per_serving && sup.calories_per_serving > 0) {
@@ -39,10 +38,10 @@ function formatNutrition(sup: Supplement): string {
 
 export default function SupplementList({ initialSupplements }: SupplementListProps) {
   const [supplements, setSupplements] = useState<Supplement[]>(initialSupplements);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const handleAddSuccess = (newSupplement: Supplement) => {
-    setSupplements(currentSupps => [...currentSupps, newSupplement].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    setSupplements(currentSupps => [...currentSupps, newSupplement]);
   };
 
   const handleUpdateSuccess = (updatedSupplement: Supplement) => {
@@ -51,42 +50,42 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
     );
   };
 
-  // FIX: The action passed to RemoveButton needs to be a function that doesn't return a value.
-  const handleDelete = (id: string) => {
-    // This function will be called by the RemoveButton
-    const action = () => { // This 'action' function returns void
-        // Optimistic UI update
+  const handleDeleteAction = (id: string) => {
+    return () => {
+        const previousSupplements = supplements;
         setSupplements(currentSupps => currentSupps.filter(s => s.id !== id));
         
-        // The server call is wrapped in startTransition
-        startTransition(() => {
-            deleteSupplement(id); 
+        startTransition(async () => {
+            const result = await deleteSupplement(id);
+            if (result?.error) {
+                setSupplements(previousSupplements);
+                alert(result.error);
+            }
         });
     };
-    // We return the 'action' function to be used by the RemoveButton
-    return action;
   };
   
   const handleToggle = (id: string, currentState: boolean) => {
     setSupplements(supps => supps.map(s => s.id === id ? { ...s, is_active: !currentState } : s));
-    // FIX: Wrap the server action in an anonymous function.
     startTransition(() => {
         toggleSupplementActive(id, !currentState);
     });
   };
   
+  const sortedSupplements = [...supplements].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
   return (
     <>
       <div className="mb-4 text-right">
         <AddSupplementModal onSuccess={handleAddSuccess} />
       </div>
       <Card>
-        {supplements.length > 0 ? (
+        {sortedSupplements.length > 0 ? (
           <ul className="divide-y divide-slate-700">
-            {supplements.map(sup => {
+            {sortedSupplements.map(sup => {
               const dosageString = formatDosage(sup);
               const nutritionString = formatNutrition(sup);
-              const fullDescription = [dosageString, nutritionString].filter(Boolean).join(' • ');
+              const fullDescription = [dosageString, nutritionString].filter(s => s && s !== 'Dosage not set').join(' • ');
 
               return (
                 <li key={sup.id} className="p-4 flex justify-between items-center group">
@@ -95,15 +94,21 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                       type="checkbox"
                       checked={sup.is_active}
                       onChange={() => handleToggle(sup.id, sup.is_active)}
+                      disabled={isPending}
                       title={sup.is_active ? 'Mark as inactive' : 'Mark as active'}
                       className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600 cursor-pointer flex-shrink-0"
                     />
                     <div className="min-w-0">
                       <p className="font-semibold truncate">{sup.name}</p>
-                      {fullDescription && (
-                          <p className="text-sm text-gray-400 truncate">
-                              {fullDescription}
-                          </p>
+                      {/* Show dosage string directly, with a fallback */}
+                      <p className="text-sm text-gray-400 truncate">
+                        {dosageString}
+                      </p>
+                      {/* Show nutrition only if it exists */}
+                      {nutritionString && (
+                        <p className="text-xs text-cyan-400/70 truncate mt-1">
+                          {nutritionString}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -111,11 +116,10 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                       <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}>
                         <Pencil size={16} />
                       </EditSupplementModal>
-                      {/* Pass the function directly */}
                       <RemoveButton 
-            action={handleDelete(sup.id)} // This is now valid
-            itemDescription={`the supplement "${sup.name}"`} 
-          />
+                        action={handleDeleteAction(sup.id)} 
+                        itemDescription={`the supplement "${sup.name}"`} 
+                      />
                   </div>
                 </li>
               )
