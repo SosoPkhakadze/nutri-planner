@@ -69,62 +69,75 @@ export async function removeLastWaterEntry(date: string) {
 // --- NEW SUPPLEMENT ACTIONS ---
 
 export async function addSupplement(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Authentication required.' };
-
-  const supplementData = {
-    user_id: user.id,
-    name: formData.get('name') as string,
-    dosage_amount: Number(formData.get('dosage_amount')) || null,
-    dosage_unit: formData.get('dosage_unit') as string || null,
-    calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
-    protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
-  };
-
-  if (!supplementData.name) {
-    return { error: 'Supplement name is required.' };
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    const supplementData = {
+      user_id: user.id,
+      name: formData.get('name') as string,
+      dosage_amount: Number(formData.get('dosage_amount')) || null,
+      dosage_unit: formData.get('dosage_unit') as string || null,
+      calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
+      protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
+    };
+  
+    if (!supplementData.name) {
+      return { error: 'Supplement name is required.' };
+    }
+  
+    // Modify the insert to return the created data
+    const { data: newSupplement, error } = await supabase
+      .from('supplements')
+      .insert(supplementData)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error('Error adding supplement:', error);
+      return { error: 'Database error: Could not save supplement.' };
+    }
+  
+    revalidatePath('/supplements');
+    // Return the new supplement data
+    return { success: true, newSupplement };
   }
-
-  const { error } = await supabase.from('supplements').insert(supplementData);
-  if (error) {
-    console.error('Error adding supplement:', error);
-    return { error: 'Database error: Could not save supplement.' };
+  
+  export async function updateSupplement(id: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    const supplementData = {
+      name: formData.get('name') as string,
+      dosage_amount: Number(formData.get('dosage_amount')) || null,
+      dosage_unit: formData.get('dosage_unit') as string || null,
+      calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
+      protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
+    };
+  
+    if (!supplementData.name) {
+      return { error: 'Supplement name is required.' };
+    }
+  
+    // Modify the update to return the new data
+    const { data: updatedSupplement, error } = await supabase
+      .from('supplements')
+      .update(supplementData)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error('Error updating supplement:', error);
+      return { error: 'Database error: Could not update supplement.' };
+    }
+  
+    revalidatePath('/supplements');
+    // Return the updated supplement data
+    return { success: true, updatedSupplement };
   }
-
-  revalidatePath('/supplements');
-  return { success: true };
-}
-
-export async function updateSupplement(id: string, formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Authentication required.' };
-
-  const supplementData = {
-    name: formData.get('name') as string,
-    dosage_amount: Number(formData.get('dosage_amount')) || null,
-    dosage_unit: formData.get('dosage_unit') as string || null,
-    calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
-    protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
-  };
-
-  if (!supplementData.name) {
-    return { error: 'Supplement name is required.' };
-  }
-
-  const { error } = await supabase.from('supplements').update(supplementData)
-    .eq('id', id)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.error('Error updating supplement:', error);
-    return { error: 'Database error: Could not update supplement.' };
-  }
-
-  revalidatePath('/supplements');
-  return { success: true };
-}
 
 export async function deleteSupplement(id: string) {
   const supabase = await createClient();

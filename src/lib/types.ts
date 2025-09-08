@@ -40,3 +40,16 @@ export interface FoodItem {
     status: 'pending' | 'done';
     meal_foods: MealFood[];
   }
+
+  export interface Supplement {
+    id: string;
+    user_id: string;
+    name: string;
+    dosage_amount: number | null;
+    dosage_unit: string | null;
+    calories_per_serving: number | null;
+    protein_g_per_serving: number | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }

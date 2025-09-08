@@ -4,8 +4,13 @@
 import { useRef, useTransition } from 'react';
 import { addSupplement } from '@/app/actions/tracking';
 import { PlusCircle } from 'lucide-react';
+import { type Supplement } from '@/lib/types'; // Import the centralized type
 
-export default function AddSupplementModal() {
+interface AddSupplementModalProps {
+  onSuccess?: (newSupplement: Supplement) => void;
+}
+
+export default function AddSupplementModal({ onSuccess }: AddSupplementModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -13,7 +18,8 @@ export default function AddSupplementModal() {
   const handleAction = (formData: FormData) => {
     startTransition(async () => {
       const result = await addSupplement(formData);
-      if (result?.success) {
+      if (result?.success && result.newSupplement) {
+        onSuccess?.(result.newSupplement);
         dialogRef.current?.close();
         formRef.current?.reset();
       } else {

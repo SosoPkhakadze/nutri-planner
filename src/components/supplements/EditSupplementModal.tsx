@@ -3,22 +3,15 @@
 
 import { useRef, useTransition, ReactNode } from 'react';
 import { updateSupplement } from '@/app/actions/tracking';
-
-type Supplement = {
-  id: string;
-  name: string;
-  dosage_amount: number | null;
-  dosage_unit: string | null;
-  calories_per_serving: number | null;
-  protein_g_per_serving: number | null;
-};
+import { type Supplement } from '@/lib/types'; // Import the centralized type
 
 interface EditSupplementModalProps {
   supplement: Supplement;
   children: ReactNode;
+  onSuccess?: (updatedSupplement: Supplement) => void;
 }
 
-export default function EditSupplementModal({ supplement, children }: EditSupplementModalProps) {
+export default function EditSupplementModal({ supplement, children, onSuccess }: EditSupplementModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -26,7 +19,8 @@ export default function EditSupplementModal({ supplement, children }: EditSupple
   const handleAction = (formData: FormData) => {
     startTransition(async () => {
       const result = await updateSupplement(supplement.id, formData);
-      if (result?.success) {
+      if (result?.success && result.updatedSupplement) {
+        onSuccess?.(result.updatedSupplement);
         dialogRef.current?.close();
       } else {
         alert(result?.error || 'Failed to update supplement.');

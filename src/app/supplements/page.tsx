@@ -6,18 +6,18 @@ import AddSupplementModal from "@/components/supplements/AddSupplementModal";
 import SupplementList from "@/components/supplements/SupplementList";
 
 export default async function SupplementsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect('/login');
-  }
-
-  const { data: supplements } = await supabase
-    .from('supplements')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true });
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+  
+    if (!user) {
+      return redirect('/login');
+    }
+  
+    const { data: supplements } = await supabase
+      .from('supplements')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
 
     return (
         <div>
@@ -29,10 +29,10 @@ export default async function SupplementsPage() {
             </div>
             {/* ADD THIS INSTRUCTIONAL TEXT */}
             <p className="text-sm text-gray-400 mb-6">
-              Use the checkbox to mark a supplement as 'active'. Active supplements will appear on your daily dashboard for tracking.
-            </p>
+          Use the checkbox to mark a supplement as 'active'. Active supplements will appear on your daily dashboard for tracking.
+        </p>
             
-            <SupplementList initialSupplements={supplements || []} />
+        <SupplementList initialSupplements={supplements || []} />
           </main>
         </div>
       );
