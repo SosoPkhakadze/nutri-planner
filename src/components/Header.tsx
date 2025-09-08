@@ -1,11 +1,10 @@
-// Make Header a client component to use the usePathname hook
+// src/components/Header.tsx
 'use client'; 
 
-// src/components/Header.tsx
 import NoSsr from './NoSsr';
 import ThemeToggle from './ThemeToggle';
-import Link from 'next/link'; // Import Link
-import { usePathname } from 'next/navigation'; // Import to check current path
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const pathname = usePathname();
@@ -44,9 +43,12 @@ export default function Header() {
               <Link href="/food-db" className={navLinkClasses('/food-db')}>
                 Food DB
               </Link>
-              {/* ADD THIS LINK */}
               <Link href="/templates" className={navLinkClasses('/templates')}>
                 Templates
+              </Link>
+              {/* ADD THIS NEW LINK */}
+              <Link href="/supplements" className={navLinkClasses('/supplements')}>
+                Supplements
               </Link>
             </div>
             <NoSsr>

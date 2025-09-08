@@ -4,7 +4,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// --- WATER ACTIONS (from previous step) ---
 export async function addWaterEntry(amount_ml: number, date: string) {
+  // ... (code from previous step, no changes needed)
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Authentication required.' };
@@ -28,8 +30,8 @@ export async function addWaterEntry(amount_ml: number, date: string) {
   return { success: true };
 }
 
-// NEW ACTION to remove the last entry for a specific day
 export async function removeLastWaterEntry(date: string) {
+  // ... (code from previous step, no changes needed)
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Authentication required.' };
@@ -61,5 +63,101 @@ export async function removeLastWaterEntry(date: string) {
   }
 
   revalidatePath('/');
+  return { success: true };
+}
+
+// --- NEW SUPPLEMENT ACTIONS ---
+
+export async function addSupplement(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const supplementData = {
+    user_id: user.id,
+    name: formData.get('name') as string,
+    dosage_amount: Number(formData.get('dosage_amount')) || null,
+    dosage_unit: formData.get('dosage_unit') as string || null,
+    calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
+    protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
+  };
+
+  if (!supplementData.name) {
+    return { error: 'Supplement name is required.' };
+  }
+
+  const { error } = await supabase.from('supplements').insert(supplementData);
+  if (error) {
+    console.error('Error adding supplement:', error);
+    return { error: 'Database error: Could not save supplement.' };
+  }
+
+  revalidatePath('/supplements');
+  return { success: true };
+}
+
+export async function updateSupplement(id: string, formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const supplementData = {
+    name: formData.get('name') as string,
+    dosage_amount: Number(formData.get('dosage_amount')) || null,
+    dosage_unit: formData.get('dosage_unit') as string || null,
+    calories_per_serving: parseInt(formData.get('calories_per_serving') as string) || 0,
+    protein_g_per_serving: parseFloat(formData.get('protein_g_per_serving') as string) || 0,
+  };
+
+  if (!supplementData.name) {
+    return { error: 'Supplement name is required.' };
+  }
+
+  const { error } = await supabase.from('supplements').update(supplementData)
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Error updating supplement:', error);
+    return { error: 'Database error: Could not update supplement.' };
+  }
+
+  revalidatePath('/supplements');
+  return { success: true };
+}
+
+export async function deleteSupplement(id: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const { error } = await supabase.from('supplements').delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Error deleting supplement:', error);
+    return { error: 'Database error: Could not delete supplement.' };
+  }
+
+  revalidatePath('/supplements');
+  return { success: true };
+}
+
+export async function toggleSupplementActive(id: string, newStatus: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  const { error } = await supabase.from('supplements').update({ is_active: newStatus })
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Error toggling supplement status:', error);
+    return { error: 'Database error: Could not update supplement.' };
+  }
+
+  revalidatePath('/supplements');
   return { success: true };
 }
