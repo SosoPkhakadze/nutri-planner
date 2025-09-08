@@ -161,3 +161,45 @@ export async function toggleSupplementActive(id: string, newStatus: boolean) {
   revalidatePath('/supplements');
   return { success: true };
 }
+
+export async function logSupplement(supplementId: string, date: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    // Use upsert to create a log or do nothing if it already exists
+    const { error } = await supabase.from('supplement_logs').upsert({
+      user_id: user.id,
+      supplement_id: supplementId,
+      date: date,
+      status: 'taken',
+    }, { onConflict: 'user_id,supplement_id,date' });
+  
+    if (error) {
+      console.error('Error logging supplement:', error);
+      return { error: 'Database error: Could not log supplement.' };
+    }
+  
+    revalidatePath('/');
+    return { success: true };
+  }
+  
+  export async function unlogSupplement(supplementId: string, date: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    // Delete the log entry for this specific supplement on this day
+    const { error } = await supabase.from('supplement_logs').delete()
+      .eq('user_id', user.id)
+      .eq('supplement_id', supplementId)
+      .eq('date', date);
+  
+    if (error) {
+      console.error('Error unlogging supplement:', error);
+      return { error: 'Database error: Could not unlog supplement.' };
+    }
+  
+    revalidatePath('/');
+    return { success: true };
+  }

@@ -15,7 +15,15 @@ import { reorderMeals, reorderMealFoods } from '@/app/actions/meals';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import type { Meal, FoodItem } from '@/lib/types';
-import WaterTrackerCard from '@/components/tracking/WaterTrackerCard'; 
+import WaterTrackerCard from '@/components/tracking/WaterTrackerCard';
+import SupplementTrackerCard from '@/components/supplements/SupplementTrackerCard';
+
+type Supplement = { // Add a simple type for the props
+  id: string;
+  name: string;
+  dosage_amount: number | null;
+  dosage_unit: string | null;
+};
 
 interface DashboardClientPageProps {
   initialMeals: Meal[];
@@ -26,9 +34,22 @@ interface DashboardClientPageProps {
   targets: { calories: number; protein: number; carbs: number; fat: number; };
   totalWaterMl: number;
   dailyWaterGoalMl: number; 
+  activeSupplements: Supplement[];
+  loggedSupplementIds: string[];
 }
 
-export default function DashboardClientPage({ initialMeals, foodItems, date, dayStatus, dailyTotals, targets, totalWaterMl, dailyWaterGoalMl }: DashboardClientPageProps) {
+export default function DashboardClientPage({ 
+  initialMeals, 
+  foodItems, 
+  date, 
+  dayStatus, 
+  dailyTotals, 
+  targets, 
+  totalWaterMl, 
+  dailyWaterGoalMl,
+  activeSupplements,
+  loggedSupplementIds
+}: DashboardClientPageProps) {
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
   const [, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
@@ -92,7 +113,7 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
   };
   
   const calorieProgress = targets.calories > 0 ? (dailyTotals.consumedCalories / targets.calories) * 100 : 0;
-
+  
   if (!isMounted) {
     return null; 
   }
@@ -164,10 +185,17 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
                 </Card>
                 {/* Add the new water tracker card here */}
                 <WaterTrackerCard 
-                        totalWaterMl={totalWaterMl} 
-                        dailyWaterGoalMl={dailyWaterGoalMl} 
-                        date={date.displayDateString} 
-                    />
+                    totalWaterMl={totalWaterMl} 
+                    dailyWaterGoalMl={dailyWaterGoalMl} 
+                    date={date.displayDateString} 
+                />
+                
+                {/* RENDER THE NEW SUPPLEMENT CARD HERE */}
+                <SupplementTrackerCard 
+                  activeSupplements={activeSupplements}
+                  loggedSupplementIds={loggedSupplementIds}
+                  date={date.displayDateString}
+                />
             </div>
           </div>
         </main>
