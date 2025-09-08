@@ -7,12 +7,14 @@ import { Pill } from 'lucide-react';
 import { logSupplement, unlogSupplement } from '@/app/actions/tracking';
 import Link from 'next/link';
 
-// Use a more specific type that matches the data we receive
+// Use a more specific type that matches all the data we need
 type Supplement = {
   id: string;
   name: string;
   dosage_amount: number | null;
   dosage_unit: string | null;
+  calories_per_serving: number | null; // Add this
+  protein_g_per_serving: number | null; // Add this
 };
 
 interface SupplementTrackerCardProps {
@@ -28,8 +30,21 @@ function formatDosage(sup: Supplement): string {
     if (amount && unit) return `${amount} ${unit}`;
     if (amount) return `${amount}`;
     if (unit) return unit;
-    return ''; // Return empty if no details, as it's a checklist
+    return '';
 }
+
+// Add the nutrition formatter here too
+function formatNutrition(sup: Supplement): string {
+    const parts = [];
+    if (sup.calories_per_serving && sup.calories_per_serving > 0) {
+        parts.push(`${sup.calories_per_serving} kcal`);
+    }
+    if (sup.protein_g_per_serving && sup.protein_g_per_serving > 0) {
+        parts.push(`${sup.protein_g_per_serving}g Protein`);
+    }
+    return parts.join(' • ');
+}
+
 
 export default function SupplementTrackerCard({ 
   activeSupplements, 
@@ -59,7 +74,8 @@ export default function SupplementTrackerCard({
         <ul className="space-y-3">
           {activeSupplements.map(sup => {
             const isLogged = loggedSupplementIds.includes(sup.id);
-            const dosageString = formatDosage(sup); // Use the helper
+            const dosageString = formatDosage(sup);
+            const nutritionString = formatNutrition(sup); // Use the helper
             return (
               <li key={sup.id}>
                 <label className="flex items-center p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition-colors">
@@ -68,15 +84,20 @@ export default function SupplementTrackerCard({
                     checked={isLogged}
                     onChange={() => handleToggle(sup.id, isLogged)}
                     disabled={isPending}
-                    className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600"
+                    className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600 flex-shrink-0"
                   />
                   <div className="ml-3 min-w-0">
                     <p className={`font-medium truncate ${isLogged ? 'line-through text-gray-400' : ''}`}>{sup.name}</p>
-                    {/* Only show dosage string if it's not empty */}
                     {dosageString && (
                       <p className={`text-sm text-gray-400 truncate ${isLogged ? 'line-through' : ''}`}>
                         {dosageString}
                       </p>
+                    )}
+                    {/* ADDED: Display nutrition string if it exists */}
+                    {nutritionString && (
+                        <p className={`text-xs text-cyan-400/70 truncate mt-1 ${isLogged ? 'line-through' : ''}`}>
+                            {nutritionString}
+                        </p>
                     )}
                   </div>
                 </label>

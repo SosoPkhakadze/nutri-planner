@@ -18,11 +18,14 @@ import type { Meal, FoodItem } from '@/lib/types';
 import WaterTrackerCard from '@/components/tracking/WaterTrackerCard';
 import SupplementTrackerCard from '@/components/supplements/SupplementTrackerCard';
 
-type Supplement = { // Add a simple type for the props
+// Define the more detailed supplement type here
+type Supplement = {
   id: string;
   name: string;
   dosage_amount: number | null;
   dosage_unit: string | null;
+  calories_per_serving: number | null;
+  protein_g_per_serving: number | null;
 };
 
 interface DashboardClientPageProps {
@@ -33,7 +36,7 @@ interface DashboardClientPageProps {
   dailyTotals: { consumedCalories: number; consumedProtein: number; consumedCarbs: number; consumedFat: number; };
   targets: { calories: number; protein: number; carbs: number; fat: number; };
   totalWaterMl: number;
-  dailyWaterGoalMl: number; 
+  dailyWaterGoalMl: number;
   activeSupplements: Supplement[];
   loggedSupplementIds: string[];
 }
@@ -77,12 +80,12 @@ export default function DashboardClientPage({
       if (oldIndex === -1 || newIndex === -1) return;
 
       const newOrder = arrayMove(meals, oldIndex, newIndex);
-      setMeals(newOrder); // Update state optimistically
+      setMeals(newOrder);
 
-      startTransition(() => { // Call server action after state update
+      startTransition(() => {
         reorderMeals(date.displayDateString, newOrder.map(m => m.id));
       });
-      return; // End execution for this case
+      return;
     }
 
     if (activeType === 'foodItem') {
@@ -104,16 +107,16 @@ export default function DashboardClientPage({
       const newMeals = [...meals];
       newMeals[mealIndex] = { ...mealToUpdate, meal_foods: updatedMealFoods };
 
-      setMeals(newMeals); // Update state optimistically
+      setMeals(newMeals);
 
-      startTransition(() => { // Call server action after state update
+      startTransition(() => {
         reorderMealFoods(activeContainerId, updatedMealFoods.map(f => f.id));
       });
     }
   };
   
   const calorieProgress = targets.calories > 0 ? (dailyTotals.consumedCalories / targets.calories) * 100 : 0;
-  
+
   if (!isMounted) {
     return null; 
   }
@@ -183,14 +186,12 @@ export default function DashboardClientPage({
                     </div>
                   </div>
                 </Card>
-                {/* Add the new water tracker card here */}
                 <WaterTrackerCard 
                     totalWaterMl={totalWaterMl} 
                     dailyWaterGoalMl={dailyWaterGoalMl} 
                     date={date.displayDateString} 
                 />
                 
-                {/* RENDER THE NEW SUPPLEMENT CARD HERE */}
                 <SupplementTrackerCard 
                   activeSupplements={activeSupplements}
                   loggedSupplementIds={loggedSupplementIds}
