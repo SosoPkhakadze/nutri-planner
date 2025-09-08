@@ -17,14 +17,13 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
   const params = await searchParams;
   const weekQuery = params?.week;
 
-  const supabase = await createClient(); // <-- ADDED AWAIT
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return redirect('/login');
   }
 
-  // --- Date Logic ---
   const startOfWeek = getStartOfWeek(weekQuery && typeof weekQuery === 'string' ? new Date(weekQuery) : new Date());
   const days = getWeekDays(startOfWeek);
   
@@ -35,7 +34,6 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
 
   const toISODate = (date: Date) => date.toISOString().split('T')[0];
 
-  // --- Data Fetching ---
   const { data: meals } = await supabase
     .from('meals')
     .select(`*, meal_foods(*)`)
@@ -61,15 +59,9 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Weekly Planner</h1>
           <div className="flex items-center gap-4">
-            <Link href={`/planner?week=${toISODate(prevWeek)}`} className="p-2 rounded-md hover:bg-slate-700">
-              <ChevronLeft />
-            </Link>
-            <span className="font-semibold text-lg">
-              {days[0].toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </span>
-            <Link href={`/planner?week=${toISODate(nextWeek)}`} className="p-2 rounded-md hover:bg-slate-700">
-              <ChevronRight />
-            </Link>
+            <Link href={`/planner?week=${toISODate(prevWeek)}`} className="p-2 rounded-md hover:bg-slate-700"><ChevronLeft /></Link>
+            <span className="font-semibold text-lg">{days[0].toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            <Link href={`/planner?week=${toISODate(nextWeek)}`} className="p-2 rounded-md hover:bg-slate-700"><ChevronRight /></Link>
           </div>
         </div>
 
@@ -77,18 +69,26 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
           {days.map(day => {
             const dateStr = toISODate(day);
             const dayMeals = mealsByDate[dateStr] || [];
+
             return (
-              <div key={dateStr} className="bg-slate-800 rounded-lg p-3 min-h-[200px]">
+              // This is the main day container, now wrapped in a Link
+              <Link href={`/?date=${dateStr}`} key={dateStr} className="block bg-slate-800 rounded-lg p-3 min-h-[200px] hover:bg-slate-700/50 transition-colors">
                 <h3 className="font-bold text-center mb-3">
                   {day.toLocaleDateString('en-US', { weekday: 'short' })}
                   <span className="block text-sm text-gray-400 font-normal">{day.getDate()}</span>
                 </h3>
                 <div className="space-y-2">
-                  {dayMeals.map(meal => (
-                    <PlannerMealCard key={meal.id} meal={meal} />
-                  ))}
+                  {dayMeals.length > 0 ? (
+                    dayMeals.map(meal => (
+                      // Each meal card can have its own interaction in the future
+                      <PlannerMealCard key={meal.id} meal={meal} />
+                    ))
+                  ) : (
+                    // Placeholder for empty days to ensure the link target is clickable
+                    <div className="h-full"></div>
+                  )}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

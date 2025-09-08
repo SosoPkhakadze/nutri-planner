@@ -8,6 +8,7 @@ import RemoveButton from "../ui/RemoveButton";
 import { deleteMeal, removeFoodFromMeal } from "@/app/actions/meals";
 // We will create the EditMealFoodModal component next
 import EditMealFoodModal from "./EditMealFoodModal";
+import SaveMealAsTemplateModal from "../templates/SaveMealAsTemplateModal"; // Import
 
 interface MealCardProps {
   meal: any;
@@ -39,6 +40,8 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
             <RemoveButton action={() => deleteMeal(meal.id)} itemDescription={`the "${meal.name}" meal`} />
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-400">
+          <SaveMealAsTemplateModal mealId={meal.id} hasFoods={meal.meal_foods.length > 0} />
+          <RemoveButton action={() => deleteMeal(meal.id)} itemDescription={`the "${meal.name}" meal`} />
             <Clock size={16} />
             <span>{displayTime}</span>
           </div>

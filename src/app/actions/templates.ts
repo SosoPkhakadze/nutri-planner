@@ -144,3 +144,50 @@ export async function applyTemplateToDate(templateId: string, date: string) {
     
     return { success: true };
   }
+
+  export async function saveMealAsTemplate(mealId: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    const templateName = formData.get('templateName') as string;
+    if (!templateName) return { error: 'Template name is required.' };
+  
+    const { data: meal, error: fetchError } = await supabase
+      .from('meals')
+      .select('*, meal_foods(*)')
+      .eq('user_id', user.id)
+      .eq('id', mealId)
+      .single();
+  
+    if (fetchError || !meal) {
+      return { error: 'Meal not found or you do not have permission to save it.' };
+    }
+  
+    if (meal.meal_foods.length === 0) {
+      return { error: 'Cannot save an empty meal as a template.' };
+    }
+  
+    const templateData = { // Note: data is an object, not an array
+      name: meal.name,
+      foods: meal.meal_foods.map((mf: any) => ({
+        food_item_id: mf.food_item_id,
+        weight_g: mf.weight_g,
+      })),
+    };
+  
+    const { error: insertError } = await supabase.from('templates').insert({
+      user_id: user.id,
+      title: templateName,
+      type: 'meal', // This is a MEAL template
+      data: templateData,
+    });
+  
+    if (insertError) {
+      console.error("Error saving meal template:", insertError);
+      return { error: 'Database error: Could not save template.' };
+    }
+  
+    revalidatePath('/templates');
+    return { success: true };
+  }

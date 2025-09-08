@@ -124,3 +124,23 @@ export async function updateMealFoodWeight(mealFoodId: string, newWeight: number
     revalidatePath('/');
     return { success: true };
   }
+
+  export async function toggleMealStatus(mealId: string, currentStatus: 'pending' | 'done') {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Authentication required.' };
+  
+    const newStatus = currentStatus === 'pending' ? 'done' : 'pending';
+  
+    const { error } = await supabase.from('meals').update({ status: newStatus })
+      .eq('id', mealId)
+      .eq('user_id', user.id);
+    
+    if (error) {
+      console.error("Error updating meal status:", error);
+      return { error: 'Database error: Could not update status.' };
+    }
+  
+    revalidatePath('/');
+    return { success: true };
+  }

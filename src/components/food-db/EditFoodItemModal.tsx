@@ -2,8 +2,7 @@
 'use client';
 
 import { useRef, useTransition, ReactNode } from 'react';
-import { updateFoodItem } from '@/app/actions/food'; // New action
-import { Pencil } from 'lucide-react';
+import { updateFoodItem } from '@/app/actions/food';
 
 interface EditFoodItemModalProps {
   foodItem: any;
@@ -28,7 +27,8 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
 
   return (
     <>
-      <button onClick={() => dialogRef.current?.showModal()} className="text-gray-400 hover:text-white">
+      {/* The trigger is a button that opens the dialog */}
+      <button onClick={() => dialogRef.current?.showModal()} className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-700">
         {children}
       </button>
       
@@ -40,7 +40,6 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
           </div>
 
           <form ref={formRef} action={handleAction} className="space-y-4">
-            {/* Fields are identical to the Add modal, but with default values */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium">Name</label>
@@ -51,7 +50,6 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
                 <input type="text" name="brand" defaultValue={foodItem.brand || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
             </div>
-            {/* ... Serving Info, Macros, etc., all with defaultValue={foodItem.field} ... */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="serving_size" className="block text-sm font-medium">Serving Size (per 100g)</label>
@@ -62,13 +60,12 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
                 <input type="text" name="serving_unit" required defaultValue={foodItem.serving_unit} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg-grid-cols-4 gap-4">
               <div><label htmlFor="calories" className="block text-sm font-medium">Calories</label><input type="number" name="calories" required defaultValue={foodItem.calories} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
               <div><label htmlFor="protein_g" className="block text-sm font-medium">Protein (g)</label><input type="number" step="0.1" name="protein_g" required defaultValue={foodItem.protein_g} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
               <div><label htmlFor="carbs_g" className="block text-sm font-medium">Carbs (g)</label><input type="number" step="0.1" name="carbs_g" required defaultValue={foodItem.carbs_g} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
               <div><label htmlFor="fat_g" className="block text-sm font-medium">Fat (g)</label><input type="number" step="0.1" name="fat_g" required defaultValue={foodItem.fat_g} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
             </div>
-            {/* TAGS INPUT */}
             <div>
               <label htmlFor="tags" className="block text-sm font-medium">Tags (comma-separated)</label>
               <input type="text" name="tags" placeholder="e.g. cutting, high-protein, snack" defaultValue={foodItem.tags?.join(', ') || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />

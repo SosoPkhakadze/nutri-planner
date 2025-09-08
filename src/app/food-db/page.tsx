@@ -1,4 +1,4 @@
-// src/app/food-db/page.tsx (CONVERTED TO CLIENT COMPONENT)
+// src/app/food-db/page.tsx
 'use client';
 
 import Header from "@/components/Header";
@@ -8,19 +8,21 @@ import RemoveButton from "@/components/ui/RemoveButton";
 import EditFoodItemModal from "@/components/food-db/EditFoodItemModal";
 import { deleteFoodItem } from "@/app/actions/food";
 import { Pencil, Tag } from "lucide-react";
-import { useState, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client'; // Use client
-import { useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 export default function FoodDbPage() {
   const [user, setUser] = useState<User | null>(null);
   const [foodItems, setFoodItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const supabase = createClient();
   
+  // Use a single useEffect to fetch data and listen for changes
   useEffect(() => {
     const fetchUserAndData = async () => {
+      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
@@ -32,8 +34,25 @@ export default function FoodDbPage() {
           .order('name', { ascending: true });
         setFoodItems(data || []);
       }
+      setIsLoading(false);
     };
+    
     fetchUserAndData();
+
+    // Set up a listener for real-time updates
+    const channel = supabase.channel('food_items')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'food_items' },
+        (payload) => {
+          // Refetch data when a change occurs
+          fetchUserAndData();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on component unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [supabase]);
 
   const filteredItems = useMemo(() => {
@@ -44,6 +63,11 @@ export default function FoodDbPage() {
       item.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, foodItems]);
+
+  if (isLoading) {
+    // You can use your existing FoodDbLoading component here if you want
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -76,20 +100,23 @@ export default function FoodDbPage() {
                     {item.tags && item.tags.length > 0 && (
                       <div className="flex items-center gap-2 mt-2">
                         <Tag size={14} className="text-gray-500" />
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 flex-wrap">
                           {item.tags.map((tag: string) => <span key={tag} className="text-xs bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-full">{tag}</span>)}
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-4">
-                    {/* Only show edit/delete if the user owns the item */}
+                    {/* THIS IS THE CRUCIAL PART THAT WAS MISSING */}
                     {user && item.owner_user_id === user.id && (
                       <>
                         <EditFoodItemModal foodItem={item}>
                           <Pencil size={16} />
                         </EditFoodItemModal>
-                        <RemoveButton action={() => deleteFoodItem(item.id)} itemDescription={item.name} />
+                        <RemoveButton 
+                          action={() => deleteFoodItem(item.id)} 
+                          itemDescription={item.name} 
+                        />
                       </>
                     )}
                   </div>
@@ -97,7 +124,7 @@ export default function FoodDbPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-500 py-8">No items found.</p>
+            <p className="text-center text-gray-500 py-8">No items found matching your search.</p>
           )}
         </Card>
       </main>
