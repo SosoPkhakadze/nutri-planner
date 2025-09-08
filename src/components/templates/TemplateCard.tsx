@@ -1,13 +1,20 @@
 // src/components/templates/TemplateCard.tsx
 'use client';
 
-import { useState, useRef, useTransition } from 'react';
+import { useState, useRef, useTransition, useMemo } from 'react';
 import Card from "@/components/ui/Card";
+import RemoveButton from "@/components/ui/RemoveButton";
 import { CalendarDays, Utensils } from "lucide-react";
-import { applyTemplateToDate } from '@/app/actions/templates';
+import { applyTemplateToDate, deleteTemplate } from '@/app/actions/templates';
 import { useRouter } from 'next/navigation';
+import type { FoodItem } from '@/lib/types';
 
-export default function TemplateCard({ template }: { template: any }) {
+interface TemplateCardProps {
+  template: any;
+  foodItemsById: { [key: string]: FoodItem };
+}
+
+export default function TemplateCard({ template, foodItemsById }: TemplateCardProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -29,15 +36,55 @@ export default function TemplateCard({ template }: { template: any }) {
     });
   };
 
+  const mealTemplateTotals = useMemo(() => {
+    if (isDayTemplate || !template.data.foods) return null;
+
+    return template.data.foods.reduce((acc: any, food: any) => {
+      const foodItem = foodItemsById[food.food_item_id];
+      if (foodItem) {
+        const multiplier = food.weight_g / 100;
+        acc.calories += Math.round(foodItem.calories * multiplier);
+        acc.protein += foodItem.protein_g * multiplier;
+        acc.carbs += foodItem.carbs_g * multiplier;
+        acc.fat += foodItem.fat_g * multiplier;
+      }
+      return acc;
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+  }, [template, foodItemsById, isDayTemplate]);
+
+
   return (
     <>
-      <Card className="p-6 flex flex-col justify-between hover:border-cyan-500 transition-colors">
+      <Card className="p-5 flex flex-col justify-between hover:border-cyan-500 transition-colors relative group">
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <RemoveButton
+            action={() => deleteTemplate(template.id)}
+            itemDescription={`the "${template.title}" template`}
+          />
+        </div>
         <div>
-          <div className={`inline-flex items-center gap-2 text-xs font-bold px-2 py-1 rounded-full mb-3 ${isDayTemplate ? 'bg-blue-900 text-blue-300' : 'bg-green-900 text-green-300'}`}>
-            {isDayTemplate ? <CalendarDays size={14} /> : <Utensils size={14} />}
-            <span className="capitalize">{template.type} Template</span>
-          </div>
-          <h3 className="text-xl font-bold mb-2">{template.title}</h3>
+          <h3 className="text-xl font-bold mb-3">{template.title}</h3>
+
+          {/* Conditional content based on template type */}
+          {isDayTemplate ? (
+            <div className='text-sm text-gray-300 space-y-1'>
+              <p className="font-semibold mb-2">Meals included:</p>
+              <ul className='list-disc list-inside'>
+                {template.data.map((meal: any) => (
+                  <li key={meal.name} className='truncate'>{meal.name}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            mealTemplateTotals && (
+              <div className="text-xs font-mono space-y-1 text-gray-400">
+                <div className="flex justify-between"><span>Calories:</span> <span className='font-semibold text-white'>{mealTemplateTotals.calories.toFixed(0)} kcal</span></div>
+                <div className="flex justify-between"><span>Protein:</span> <span>{mealTemplateTotals.protein.toFixed(1)} g</span></div>
+                <div className="flex justify-between"><span>Carbs:</span> <span>{mealTemplateTotals.carbs.toFixed(1)} g</span></div>
+                <div className="flex justify-between"><span>Fat:</span> <span>{mealTemplateTotals.fat.toFixed(1)} g</span></div>
+              </div>
+            )
+          )}
         </div>
         <button
           onClick={() => dialogRef.current?.showModal()}

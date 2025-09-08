@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardClientPage from "./DashboardClientPage";
 
-export default async function DashboardPage({ searchParams }: { searchParams: { date?: string } }) {
+// The type here is now a Promise that resolves to the object
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -21,7 +22,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     return redirect("/onboarding/1");
   }
 
-  const params = searchParams;
+  // 👇 Await the searchParams promise here
+  const params = await searchParams;
   const toISODate = (date: Date) => date.toISOString().split("T")[0];
 
   let displayDate: Date;

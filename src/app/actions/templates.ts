@@ -4,6 +4,31 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// NEW ACTION: To delete a template
+export async function deleteTemplate(templateId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Authentication required.' };
+
+  // Delete the template ensuring the user owns it
+  const { error } = await supabase
+    .from('templates')
+    .delete()
+    .eq('id', templateId)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error deleting template:", error);
+    return { error: 'Database error: Could not delete template.' };
+  }
+
+  revalidatePath('/templates');
+  return { success: true };
+}
+
+
+// --- EXISTING ACTIONS (no changes needed below) ---
+
 export async function saveDayAsTemplate(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,9 +79,7 @@ export async function saveDayAsTemplate(formData: FormData) {
     return { error: 'Database error: Could not save template.' };
   }
 
-  // Revalidate the templates page when we build it
-  // revalidatePath('/templates'); 
-
+  revalidatePath('/templates'); 
   return { success: true };
 }
 
