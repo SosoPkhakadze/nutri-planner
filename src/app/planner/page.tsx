@@ -16,6 +16,7 @@ interface PlannerPageProps {
 export default async function PlannerPage({ searchParams }: PlannerPageProps) {
   const params = await searchParams;
   const weekQuery = params?.week;
+  const toISODate = (date: Date) => date.toISOString().split('T')[0];
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -24,15 +25,29 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
     return redirect('/login');
   }
 
-  const startOfWeek = getStartOfWeek(weekQuery && typeof weekQuery === 'string' ? new Date(weekQuery) : new Date());
+  let referenceDate: Date;
+  if (weekQuery && typeof weekQuery === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(weekQuery)) {
+    // new Date('YYYY-MM-DD') parses as UTC midnight, which is correct.
+    referenceDate = new Date(weekQuery);
+  } else {
+    // If no date, use today's UTC date.
+    const today = new Date();
+    referenceDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  }
+
+  // Fallback for any invalid date parsing
+  if (isNaN(referenceDate.getTime())) {
+    const today = new Date();
+    referenceDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  }
+
+  const startOfWeek = getStartOfWeek(referenceDate);
   const days = getWeekDays(startOfWeek);
   
   const prevWeek = new Date(startOfWeek);
-  prevWeek.setDate(prevWeek.getDate() - 7);
+  prevWeek.setUTCDate(prevWeek.getUTCDate() - 7);
   const nextWeek = new Date(startOfWeek);
-  nextWeek.setDate(nextWeek.getDate() + 7);
-
-  const toISODate = (date: Date) => date.toISOString().split('T')[0];
+  nextWeek.setUTCDate(nextWeek.getUTCDate() + 7);
 
   const { data: meals } = await supabase
     .from('meals')
@@ -60,7 +75,7 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
           <h1 className="text-3xl font-bold">Weekly Planner</h1>
           <div className="flex items-center gap-4">
             <Link href={`/planner?week=${toISODate(prevWeek)}`} className="p-2 rounded-md hover:bg-slate-700"><ChevronLeft /></Link>
-            <span className="font-semibold text-lg">{days[0].toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            <span className="font-semibold text-lg">{days[0].toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })} - {days[6].toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
             <Link href={`/planner?week=${toISODate(nextWeek)}`} className="p-2 rounded-md hover:bg-slate-700"><ChevronRight /></Link>
           </div>
         </div>
@@ -74,8 +89,8 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
               // This is the main day container, now wrapped in a Link
               <Link href={`/?date=${dateStr}`} key={dateStr} className="block bg-slate-800 rounded-lg p-3 min-h-[200px] hover:bg-slate-700/50 transition-colors">
                 <h3 className="font-bold text-center mb-3">
-                  {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                  <span className="block text-sm text-gray-400 font-normal">{day.getDate()}</span>
+                  {day.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })}
+                  <span className="block text-sm text-gray-400 font-normal">{day.getUTCDate()}</span>
                 </h3>
                 <div className="space-y-2">
                   {dayMeals.length > 0 ? (

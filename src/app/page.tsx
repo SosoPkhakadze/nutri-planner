@@ -2,9 +2,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardClientPage from "./DashboardClientPage";
-import type { Meal } from "@/lib/types";
 
-export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+export default async function DashboardPage({ searchParams }: { searchParams: { date?: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -22,16 +21,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     return redirect("/onboarding/1");
   }
 
-  // 👇 await searchParams
-  const params = await searchParams;
+  const params = searchParams;
   const toISODate = (date: Date) => date.toISOString().split("T")[0];
-  const displayDate = params.date ? new Date(`${params.date}T00:00:00`) : new Date();
+
+  let displayDate: Date;
+  // Check if a valid date string is provided, otherwise use today
+  if (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)) {
+      // Using new Date('YYYY-MM-DD') parses the date as UTC midnight, which is what we want.
+      displayDate = new Date(params.date);
+  } else {
+      // If no date or invalid format, use today's UTC date.
+      const today = new Date();
+      displayDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  }
+
+  // Fallback for any invalid date parsing
+  if (isNaN(displayDate.getTime())) {
+      const today = new Date();
+      displayDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  }
+
   const displayDateString = toISODate(displayDate);
 
   const prevDay = new Date(displayDate);
-  prevDay.setDate(prevDay.getDate() - 1);
+  prevDay.setUTCDate(prevDay.getUTCDate() - 1);
   const nextDay = new Date(displayDate);
-  nextDay.setDate(nextDay.getDate() + 1);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
   const { data: mealsData } = await supabase
     .from("meals")
@@ -94,6 +109,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         weekday: "long",
         month: "long",
         day: "numeric",
+        timeZone: "UTC", // Specify UTC timezone for consistent display
       }),
       prevDay: toISODate(prevDay),
       nextDay: toISODate(nextDay),

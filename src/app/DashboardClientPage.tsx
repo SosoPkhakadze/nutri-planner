@@ -48,14 +48,17 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
     if (activeId === overId) return;
 
     if (activeType === 'meal') {
-      setMeals((currentMeals) => {
-        const oldIndex = currentMeals.findIndex((m) => m.id === activeId);
-        const newIndex = currentMeals.findIndex((m) => m.id === overId);
-        if (oldIndex === -1 || newIndex === -1) return currentMeals;
-        const newOrder = arrayMove(currentMeals, oldIndex, newIndex);
-        startTransition(() => { reorderMeals(date.displayDateString, newOrder.map(m => m.id)); });
-        return newOrder;
+      const oldIndex = meals.findIndex((m) => m.id === activeId);
+      const newIndex = meals.findIndex((m) => m.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newOrder = arrayMove(meals, oldIndex, newIndex);
+      setMeals(newOrder); // Update state optimistically
+
+      startTransition(() => { // Call server action after state update
+        reorderMeals(date.displayDateString, newOrder.map(m => m.id));
       });
+      return; // End execution for this case
     }
 
     if (activeType === 'foodItem') {
@@ -64,30 +67,32 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
 
       if (!activeContainerId || !overContainerId || activeContainerId !== overContainerId) return;
       
-      setMeals((currentMeals) => {
-        const mealIndex = currentMeals.findIndex(m => m.id === activeContainerId);
-        if (mealIndex === -1) return currentMeals;
+      const mealIndex = meals.findIndex(m => m.id === activeContainerId);
+      if (mealIndex === -1) return;
 
-        const newMeals = [...currentMeals];
-        const mealToUpdate = { ...newMeals[mealIndex] };
-        const oldFoodIndex = mealToUpdate.meal_foods.findIndex(f => f.id === activeId);
-        const newFoodIndex = mealToUpdate.meal_foods.findIndex(f => f.id === overId);
-        if (oldFoodIndex === -1 || newFoodIndex === -1) return currentMeals;
+      const mealToUpdate = meals[mealIndex];
+      const oldFoodIndex = mealToUpdate.meal_foods.findIndex(f => f.id === activeId);
+      const newFoodIndex = mealToUpdate.meal_foods.findIndex(f => f.id === overId);
+      if (oldFoodIndex === -1 || newFoodIndex === -1) return;
 
-        mealToUpdate.meal_foods = arrayMove(mealToUpdate.meal_foods, oldFoodIndex, newFoodIndex);
-        newMeals[mealIndex] = mealToUpdate;
+      const updatedMealFoods = arrayMove(mealToUpdate.meal_foods, oldFoodIndex, newFoodIndex);
+      
+      const newMeals = [...meals];
+      newMeals[mealIndex] = { ...mealToUpdate, meal_foods: updatedMealFoods };
 
-        startTransition(() => { reorderMealFoods(activeContainerId, mealToUpdate.meal_foods.map(f => f.id)); });
-        return newMeals;
+      setMeals(newMeals); // Update state optimistically
+
+      startTransition(() => { // Call server action after state update
+        reorderMealFoods(activeContainerId, updatedMealFoods.map(f => f.id));
       });
     }
   };
   
   const calorieProgress = targets.calories > 0 ? (dailyTotals.consumedCalories / targets.calories) * 100 : 0;
 
+  // This check is good for preventing hydration errors, but we can render a loading state instead of null for better UX
   if (!isMounted) {
-    // Render a skeleton or a simplified static view to prevent hydration errors.
-    // Returning null is the simplest way to ensure nothing interactive renders on the server.
+    // Returning null is fine, but you could also show a loader here.
     return null; 
   }
 
