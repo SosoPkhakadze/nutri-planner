@@ -9,17 +9,18 @@ export default function ThemeToggle() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
+    // Check for saved theme in localStorage and system preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       document.documentElement.classList.add('dark');
       setIsDarkMode(true);
-    } else if (theme === 'light') {
+    } else {
       document.documentElement.classList.remove('dark');
       setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
     }
+    
     setIsLoaded(true);
   }, []);
 
@@ -34,6 +35,7 @@ export default function ThemeToggle() {
     setIsDarkMode(!isDarkMode);
   };
 
+  // Render a placeholder until the component is loaded on the client
   if (!isLoaded) {
     return (
       <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-slate-700 animate-pulse"></div>

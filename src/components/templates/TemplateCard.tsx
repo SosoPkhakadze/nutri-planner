@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
-import Card from "@/components/ui/Card"; // Corrected import path
-import { Calendar, Layers } from "lucide-react";
+import Card from "@/components/ui/Card";
+import { CalendarDays, Utensils } from "lucide-react";
 import { applyTemplateToDate } from '@/app/actions/templates';
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +14,7 @@ export default function TemplateCard({ template }: { template: any }) {
   
   const today = new Date().toISOString().split('T')[0];
   const [applyDate, setApplyDate] = useState(today);
+  const isDayTemplate = template.type === 'day';
 
   const handleApply = () => {
     startTransition(async () => {
@@ -21,6 +22,7 @@ export default function TemplateCard({ template }: { template: any }) {
       if (result?.success) {
         dialogRef.current?.close();
         router.push(`/planner?week=${applyDate}`);
+        router.refresh(); // Force a refresh to show new data
       } else {
         alert(result?.error || 'Failed to apply template.');
       }
@@ -29,13 +31,13 @@ export default function TemplateCard({ template }: { template: any }) {
 
   return (
     <>
-      <Card className="p-6 flex flex-col justify-between">
+      <Card className="p-6 flex flex-col justify-between hover:border-cyan-500 transition-colors">
         <div>
-          <h3 className="text-xl font-bold mb-2">{template.title}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Layers size={16} />
+          <div className={`inline-flex items-center gap-2 text-xs font-bold px-2 py-1 rounded-full mb-3 ${isDayTemplate ? 'bg-blue-900 text-blue-300' : 'bg-green-900 text-green-300'}`}>
+            {isDayTemplate ? <CalendarDays size={14} /> : <Utensils size={14} />}
             <span className="capitalize">{template.type} Template</span>
           </div>
+          <h3 className="text-xl font-bold mb-2">{template.title}</h3>
         </div>
         <button
           onClick={() => dialogRef.current?.showModal()}

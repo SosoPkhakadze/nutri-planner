@@ -5,12 +5,17 @@ import { useRef, useTransition } from 'react';
 import { addMeal } from '@/app/actions/meals';
 import { PlusCircle } from 'lucide-react';
 
-export default function AddMealModal() {
+interface AddMealModalProps {
+  date: string; // YYYY-MM-DD
+}
+
+export default function AddMealModal({ date }: AddMealModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleAddMeal = (formData: FormData) => {
+    formData.append('date', date); // Add the date to the form data
     startTransition(async () => {
       const result = await addMeal(formData);
       if (result?.success) {
@@ -26,10 +31,10 @@ export default function AddMealModal() {
     <>
       <button
         onClick={() => dialogRef.current?.showModal()}
-        className="mt-4 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2"
+        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2 text-sm"
       >
         <PlusCircle size={18} />
-        Add Your First Meal
+        Add Meal
       </button>
 
       <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-md">
@@ -58,6 +63,7 @@ export default function AddMealModal() {
                 id="mealTime"
                 name="mealTime"
                 required
+                defaultValue="08:00"
                 className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm p-2"
               />
             </div>

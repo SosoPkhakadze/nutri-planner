@@ -6,20 +6,21 @@ import Card from "@/components/ui/Card";
 import AddFoodItemModal from "@/components/food-db/AddFoodItemModal";
 import RemoveButton from "@/components/ui/RemoveButton";
 import EditFoodItemModal from "@/components/food-db/EditFoodItemModal";
-import { deleteFoodItem } from "@/app/actions/food";
-import { Pencil, Tag } from "lucide-react";
-import { useState, useMemo, useEffect } from 'react';
+import { deleteFoodItem, cloneFoodItem } from "@/app/actions/food";
+import { Pencil, Tag, Copy, ShieldCheck } from "lucide-react";
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
+import FoodDbLoading from "./loading";
 
 export default function FoodDbPage() {
   const [user, setUser] = useState<User | null>(null);
   const [foodItems, setFoodItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const supabase = createClient();
   
-  // Use a single useEffect to fetch data and listen for changes
   useEffect(() => {
     const fetchUserAndData = async () => {
       setIsLoading(true);
@@ -39,21 +40,31 @@ export default function FoodDbPage() {
     
     fetchUserAndData();
 
-    // Set up a listener for real-time updates
     const channel = supabase.channel('food_items')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'food_items' },
         (payload) => {
-          // Refetch data when a change occurs
           fetchUserAndData();
         }
       )
       .subscribe();
 
-    // Cleanup subscription on component unmount
     return () => {
       supabase.removeChannel(channel);
     };
   }, [supabase]);
+
+  const handleClone = (foodItemId: string) => {
+    startTransition(async () => {
+      if (confirm("This will create a personal, editable copy of this food item in your database. Continue?")) {
+        const result = await cloneFoodItem(foodItemId);
+        if (result.success) {
+          alert("Food item copied successfully! You can now find and edit it in your database.");
+        } else {
+          alert(result.error || "Failed to copy item.");
+        }
+      }
+    });
+  };
 
   const filteredItems = useMemo(() => {
     if (!searchTerm) return foodItems;
@@ -65,8 +76,7 @@ export default function FoodDbPage() {
   }, [searchTerm, foodItems]);
 
   if (isLoading) {
-    // You can use your existing FoodDbLoading component here if you want
-    return <div>Loading...</div>;
+    return <FoodDbLoading />;
   }
 
   return (
@@ -91,10 +101,18 @@ export default function FoodDbPage() {
           {filteredItems.length > 0 ? (
             <ul className="divide-y divide-slate-700">
               {filteredItems.map((item) => (
-                <li key={item.id} className="p-4 flex justify-between items-center">
+                <li key={item.id} className="p-4 flex justify-between items-center group">
                   <div>
-                    <p className="font-semibold">{item.name} <span className="text-sm font-normal text-gray-400">{item.brand ? `- ${item.brand}` : ''}</span></p>
-                    <p className="text-sm text-gray-400 font-mono">
+                    <div className="flex items-center gap-2">
+                       <p className="font-semibold">{item.name}</p>
+                       {item.verified && (
+                         <span title="Verified Global Item" className="text-cyan-400">
+                           <ShieldCheck size={16} />
+                         </span>
+                       )}
+                    </div>
+                    <p className="text-sm font-normal text-gray-400">{item.brand ? `- ${item.brand}` : ''}</p>
+                    <p className="text-sm text-gray-400 font-mono mt-1">
                       100g: {item.calories}kcal | P:{item.protein_g}g C:{item.carbs_g}g F:{item.fat_g}g
                     </p>
                     {item.tags && item.tags.length > 0 && (
@@ -107,8 +125,7 @@ export default function FoodDbPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-4">
-                    {/* THIS IS THE CRUCIAL PART THAT WAS MISSING */}
-                    {user && item.owner_user_id === user.id && (
+                    {user && item.owner_user_id === user.id ? (
                       <>
                         <EditFoodItemModal foodItem={item}>
                           <Pencil size={16} />
@@ -118,6 +135,15 @@ export default function FoodDbPage() {
                           itemDescription={item.name} 
                         />
                       </>
+                    ) : (
+                      <button 
+                        onClick={() => handleClone(item.id)} 
+                        disabled={isPending} 
+                        title="Create an editable copy" 
+                        className="text-cyan-400 hover:text-white p-1 rounded-md hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Copy size={16} />
+                      </button>
                     )}
                   </div>
                 </li>

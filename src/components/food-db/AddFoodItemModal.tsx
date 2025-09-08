@@ -55,7 +55,7 @@ export default function AddFoodItemModal() {
             {/* Serving Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="serving_size" className="block text-sm font-medium">Serving Size</label>
+                <label htmlFor="serving_size" className="block text-sm font-medium">Serving Size (per 100g)</label>
                 <input type="number" step="0.1" name="serving_size" required className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
               <div>
@@ -82,6 +82,12 @@ export default function AddFoodItemModal() {
                 <label htmlFor="fat_g" className="block text-sm font-medium">Fat (g)</label>
                 <input type="number" step="0.1" name="fat_g" required className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
               </div>
+            </div>
+            
+            {/* Tags Input */}
+            <div>
+              <label htmlFor="tags" className="block text-sm font-medium">Tags (comma-separated)</label>
+              <input type="text" name="tags" placeholder="e.g. cutting, high-protein, snack" className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
             </div>
             
             <div className="flex justify-end gap-4 pt-4">

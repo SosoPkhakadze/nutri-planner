@@ -2,7 +2,8 @@
 'use client';
 
 import { useRef, useTransition, ReactNode } from 'react';
-import { updateFoodItem } from '@/app/actions/food';
+import { updateFoodItem, resetFoodItem } from '@/app/actions/food';
+import { RotateCcw } from 'lucide-react';
 
 interface EditFoodItemModalProps {
   foodItem: any;
@@ -25,9 +26,21 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
     });
   };
 
+  const handleReset = () => {
+    if (confirm("Are you sure? This will revert all changes back to the original verified food item's values.")) {
+      startTransition(async () => {
+        const result = await resetFoodItem(foodItem.id);
+        if (result.success) {
+          dialogRef.current?.close();
+        } else {
+          alert(result.error || 'Failed to reset item.');
+        }
+      });
+    }
+  };
+
   return (
     <>
-      {/* The trigger is a button that opens the dialog */}
       <button onClick={() => dialogRef.current?.showModal()} className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-700">
         {children}
       </button>
@@ -36,31 +49,22 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Edit "{foodItem.name}"</h2>
-            <button onClick={() => dialogRef.current?.close()} className="text-gray-400 hover:text-white">&times;</button>
+            {foodItem.base_food_item_id && (
+              <button onClick={handleReset} disabled={isPending} className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300 disabled:opacity-50">
+                <RotateCcw size={14} /> {isPending ? 'Resetting...' : 'Reset to Original'}
+              </button>
+            )}
           </div>
-
           <form ref={formRef} action={handleAction} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium">Name</label>
-                <input type="text" name="name" required defaultValue={foodItem.name} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
-              </div>
-              <div>
-                <label htmlFor="brand" className="block text-sm font-medium">Brand (Optional)</label>
-                <input type="text" name="brand" defaultValue={foodItem.brand || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
-              </div>
+              <div><label htmlFor="name" className="block text-sm font-medium">Name</label><input type="text" name="name" required defaultValue={foodItem.name} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
+              <div><label htmlFor="brand" className="block text-sm font-medium">Brand (Optional)</label><input type="text" name="brand" defaultValue={foodItem.brand || ''} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="serving_size" className="block text-sm font-medium">Serving Size (per 100g)</label>
-                <input type="number" step="0.1" name="serving_size" required defaultValue={foodItem.serving_size} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
-              </div>
-              <div>
-                <label htmlFor="serving_unit" className="block text-sm font-medium">Serving Unit</label>
-                <input type="text" name="serving_unit" required defaultValue={foodItem.serving_unit} className="mt-1 w-full bg-slate-700 p-2 rounded-md" />
-              </div>
+              <div><label htmlFor="serving_size" className="block text-sm font-medium">Serving Size (per 100g)</label><input type="number" step="0.1" name="serving_size" required defaultValue={foodItem.serving_size} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
+              <div><label htmlFor="serving_unit" className="block text-sm font-medium">Serving Unit</label><input type="text" name="serving_unit" required defaultValue={foodItem.serving_unit} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
             </div>
-            <div className="grid grid-cols-2 lg-grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div><label htmlFor="calories" className="block text-sm font-medium">Calories</label><input type="number" name="calories" required defaultValue={foodItem.calories} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
               <div><label htmlFor="protein_g" className="block text-sm font-medium">Protein (g)</label><input type="number" step="0.1" name="protein_g" required defaultValue={foodItem.protein_g} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
               <div><label htmlFor="carbs_g" className="block text-sm font-medium">Carbs (g)</label><input type="number" step="0.1" name="carbs_g" required defaultValue={foodItem.carbs_g} className="mt-1 w-full bg-slate-700 p-2 rounded-md" /></div>
