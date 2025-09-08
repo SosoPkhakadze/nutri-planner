@@ -15,6 +15,7 @@ import { reorderMeals, reorderMealFoods } from '@/app/actions/meals';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import type { Meal, FoodItem } from '@/lib/types';
+import WaterTrackerCard from '@/components/tracking/WaterTrackerCard'; // Import the new component
 
 interface DashboardClientPageProps {
   initialMeals: Meal[];
@@ -23,9 +24,10 @@ interface DashboardClientPageProps {
   dayStatus: 'pending' | 'complete';
   dailyTotals: { consumedCalories: number; consumedProtein: number; consumedCarbs: number; consumedFat: number; };
   targets: { calories: number; protein: number; carbs: number; fat: number; };
+  totalWaterMl: number; // Add the new prop
 }
 
-export default function DashboardClientPage({ initialMeals, foodItems, date, dayStatus, dailyTotals, targets }: DashboardClientPageProps) {
+export default function DashboardClientPage({ initialMeals, foodItems, date, dayStatus, dailyTotals, targets, totalWaterMl }: DashboardClientPageProps) {
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
   const [, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
@@ -90,9 +92,7 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
   
   const calorieProgress = targets.calories > 0 ? (dailyTotals.consumedCalories / targets.calories) * 100 : 0;
 
-  // This check is good for preventing hydration errors, but we can render a loading state instead of null for better UX
   if (!isMounted) {
-    // Returning null is fine, but you could also show a loader here.
     return null; 
   }
 
@@ -161,6 +161,8 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
                     </div>
                   </div>
                 </Card>
+                {/* Add the new water tracker card here */}
+                <WaterTrackerCard totalWaterMl={totalWaterMl} date={date.displayDateString} />
             </div>
           </div>
         </main>

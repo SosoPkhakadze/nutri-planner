@@ -50,13 +50,22 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const nextDay = new Date(displayDate);
   nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
-  const { data: mealsData } = await supabase
-    .from("meals")
-    .select(`*, meal_foods (*, food_items (*))`)
-    .eq("user_id", user.id)
-    .eq("date", displayDateString)
-    .order("order_index", { ascending: true });
+  // Fetch meals and water data in parallel
+  const [mealsRes, waterRes] = await Promise.all([
+    supabase
+      .from("meals")
+      .select(`*, meal_foods (*, food_items (*))`)
+      .eq("user_id", user.id)
+      .eq("date", displayDateString)
+      .order("order_index", { ascending: true }),
+    supabase
+      .from("water_entries")
+      .select("amount_ml")
+      .eq("user_id", user.id)
+      .eq("date", displayDateString)
+  ]);
     
+  const mealsData = mealsRes.data;
   const meals =
     mealsData?.map((meal) => ({
       ...meal,
@@ -65,6 +74,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           (a.order_index ?? 0) - (b.order_index ?? 0)
       ),
     })) || [];
+  
+  const totalWaterMl = waterRes.data?.reduce((sum, entry) => sum + entry.amount_ml, 0) || 0;
 
   const { data: foodItemsData } = await supabase
     .from("food_items")
@@ -124,6 +135,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       carbs: userProfile.baseline_macros?.carbs_g || 300,
       fat: userProfile.baseline_macros?.fat_g || 70,
     },
+    totalWaterMl, // Pass the new data as a prop
   };
 
   return <DashboardClientPage {...props} />;
