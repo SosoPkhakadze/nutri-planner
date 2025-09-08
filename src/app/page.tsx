@@ -135,7 +135,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       carbs: userProfile.baseline_macros?.carbs_g || 300,
       fat: userProfile.baseline_macros?.fat_g || 70,
     },
-    totalWaterMl, // Pass the new data as a prop
+    totalWaterMl,
+    // Provide the goal, with a fallback for existing users who won't have the value yet
+    dailyWaterGoalMl: userProfile.daily_water_goal_ml || 3000,
   };
 
   return <DashboardClientPage {...props} />;

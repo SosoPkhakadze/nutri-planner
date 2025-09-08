@@ -15,7 +15,7 @@ import { reorderMeals, reorderMealFoods } from '@/app/actions/meals';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import type { Meal, FoodItem } from '@/lib/types';
-import WaterTrackerCard from '@/components/tracking/WaterTrackerCard'; // Import the new component
+import WaterTrackerCard from '@/components/tracking/WaterTrackerCard'; 
 
 interface DashboardClientPageProps {
   initialMeals: Meal[];
@@ -24,10 +24,11 @@ interface DashboardClientPageProps {
   dayStatus: 'pending' | 'complete';
   dailyTotals: { consumedCalories: number; consumedProtein: number; consumedCarbs: number; consumedFat: number; };
   targets: { calories: number; protein: number; carbs: number; fat: number; };
-  totalWaterMl: number; // Add the new prop
+  totalWaterMl: number;
+  dailyWaterGoalMl: number; 
 }
 
-export default function DashboardClientPage({ initialMeals, foodItems, date, dayStatus, dailyTotals, targets, totalWaterMl }: DashboardClientPageProps) {
+export default function DashboardClientPage({ initialMeals, foodItems, date, dayStatus, dailyTotals, targets, totalWaterMl, dailyWaterGoalMl }: DashboardClientPageProps) {
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
   const [, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
@@ -162,7 +163,11 @@ export default function DashboardClientPage({ initialMeals, foodItems, date, day
                   </div>
                 </Card>
                 {/* Add the new water tracker card here */}
-                <WaterTrackerCard totalWaterMl={totalWaterMl} date={date.displayDateString} />
+                <WaterTrackerCard 
+                        totalWaterMl={totalWaterMl} 
+                        dailyWaterGoalMl={dailyWaterGoalMl} 
+                        date={date.displayDateString} 
+                    />
             </div>
           </div>
         </main>
