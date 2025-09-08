@@ -115,7 +115,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   // Add calories/protein from meals
   if (meals) {
     for (const meal of meals) {
-      if (meal.status === "done") {
+      if (meal.status === "done") { // Only 'done' meals are counted
         for (const mealFood of meal.meal_foods) {
           if (mealFood.food_items) {
             const multiplier = mealFood.weight_g / 100;
@@ -133,8 +133,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   for (const supplementId of loggedSupplementIds) {
     const supplement = supplementMap.get(supplementId);
     if (supplement) {
+      // This is the crucial part that adds supplement nutrition
       consumedCalories += supplement.calories_per_serving || 0;
       consumedProtein += supplement.protein_g_per_serving || 0;
+      // Note: We don't add carbs or fat from supplements unless we add those fields later
     }
   }
 
