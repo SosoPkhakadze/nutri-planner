@@ -10,6 +10,21 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: { // NEW: Expanded color palette
+        'brand-cyan': {
+          DEFAULT: '#06b6d4',
+          light: '#22d3ee',
+          dark: '#0891b2',
+        },
+        'brand-green': '#10b981',
+        'brand-amber': '#f59e0b',
+        'slate-subtle': 'hsl(222.2 47.4% 16.0%)', // A slightly lighter slate for nested cards
+        'slate-border': 'hsl(217.2 32.6% 20.0%)',
+      },
+      transitionProperty: { // NEW: Add max-height for collapsible sections
+        'height': 'height',
+        'max-height': 'max-height',
+      },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',

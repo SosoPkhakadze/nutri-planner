@@ -15,7 +15,6 @@ export default function DayStatusToggleButton({ date, status }: DayStatusToggleB
   const isComplete = status === 'complete';
 
   const handleClick = () => {
-    // FIX: Wrap the server action call so startTransition doesn't get a return value.
     startTransition(() => {
       toggleDayStatus(date, status);
     });
@@ -25,14 +24,14 @@ export default function DayStatusToggleButton({ date, status }: DayStatusToggleB
     <button
       onClick={handleClick}
       disabled={isPending}
-      className={`px-4 py-2 font-semibold rounded-md transition flex items-center gap-2 text-sm ${
+      className={`px-4 py-2 font-semibold rounded-md transition-all duration-200 flex items-center gap-2 text-sm border ${
         isComplete
-          ? 'bg-green-600 hover:bg-green-700 text-white'
-          : 'bg-slate-600 hover:bg-slate-700 text-white'
+          ? 'bg-brand-green/20 text-brand-green border-brand-green/30 hover:bg-brand-green/30'
+          : 'bg-slate-600 hover:bg-slate-700 text-white border-slate-500'
       } disabled:opacity-70`}
     >
       {isComplete ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
-      {isPending ? 'Updating...' : (isComplete ? 'Day Complete' : 'Mark Day Complete')}
+      {isPending ? 'Updating...' : (isComplete ? 'Day Complete' : 'Mark as Complete')}
     </button>
   );
 }
