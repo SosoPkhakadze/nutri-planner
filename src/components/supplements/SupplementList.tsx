@@ -6,7 +6,6 @@ import Card from '../ui/Card';
 import RemoveButton from '../ui/RemoveButton';
 import { deleteSupplement, toggleSupplementActive } from '@/app/actions/tracking';
 import { Pencil } from 'lucide-react';
-// We will create the EditSupplementModal next
 import EditSupplementModal from './EditSupplementModal';
 
 type Supplement = {
@@ -23,9 +22,34 @@ interface SupplementListProps {
   initialSupplements: Supplement[];
 }
 
+// Helper function to format the dosage string more intelligently
+function formatDosage(sup: Supplement): string {
+    const parts = [];
+    if (sup.dosage_amount) {
+        parts.push(sup.dosage_amount);
+    }
+    if (sup.dosage_unit) {
+        parts.push(sup.dosage_unit);
+    }
+    return parts.join(' '); // "5 g", "1 capsule", "5", "g"
+}
+
+// Helper function to format the nutrition string
+function formatNutrition(sup: Supplement): string {
+    const parts = [];
+    if (sup.calories_per_serving && sup.calories_per_serving > 0) {
+        parts.push(`${sup.calories_per_serving} kcal`);
+    }
+    if (sup.protein_g_per_serving && sup.protein_g_per_serving > 0) {
+        parts.push(`${sup.protein_g_per_serving}g Protein`);
+    }
+    return parts.join(' • '); // "120 kcal • 24g Protein"
+}
+
+
 export default function SupplementList({ initialSupplements }: SupplementListProps) {
   const [supplements, setSupplements] = useState(initialSupplements);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleToggle = (id: string, currentState: boolean) => {
     // Optimistic update
@@ -40,37 +64,42 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
     <Card>
       {supplements.length > 0 ? (
         <ul className="divide-y divide-slate-700">
-          {supplements.map(sup => (
-            <li key={sup.id} className="p-4 flex justify-between items-center group">
-              <div className="flex items-center gap-4">
-                <input
-                  type="checkbox"
-                  checked={sup.is_active}
-                  onChange={() => handleToggle(sup.id, sup.is_active)}
-                  disabled={isPending}
-                  title={sup.is_active ? 'Mark as inactive' : 'Mark as active'}
-                  className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600 cursor-pointer"
-                />
-                <div>
-                  <p className="font-semibold">{sup.name}</p>
-                  <p className="text-sm text-gray-400">
-                    {sup.dosage_amount} {sup.dosage_unit}
-                    {sup.calories_per_serving && sup.calories_per_serving > 0 ? ` • ${sup.calories_per_serving} kcal` : ''}
-                    {sup.protein_g_per_serving && sup.protein_g_per_serving > 0 ? ` • ${sup.protein_g_per_serving}g Protein` : ''}
-                  </p>
+          {supplements.map(sup => {
+            const dosageString = formatDosage(sup);
+            const nutritionString = formatNutrition(sup);
+            const fullDescription = [dosageString, nutritionString].filter(Boolean).join(' • ');
+
+            return (
+                <li key={sup.id} className="p-4 flex justify-between items-center group">
+                <div className="flex items-center gap-4">
+                    <input
+                    type="checkbox"
+                    checked={sup.is_active}
+                    onChange={() => handleToggle(sup.id, sup.is_active)}
+                    title={sup.is_active ? 'Mark as inactive' : 'Mark as active'}
+                    className="h-5 w-5 rounded bg-slate-600 border-slate-500 text-cyan-500 focus:ring-cyan-600 cursor-pointer flex-shrink-0"
+                    />
+                    <div>
+                    <p className="font-semibold">{sup.name}</p>
+                    {fullDescription && (
+                        <p className="text-sm text-gray-400">
+                            {fullDescription}
+                        </p>
+                    )}
+                    </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <EditSupplementModal supplement={sup}>
-                  <Pencil size={16} />
-                </EditSupplementModal>
-                <RemoveButton 
-                  action={() => deleteSupplement(sup.id)} 
-                  itemDescription={`the supplement "${sup.name}"`} 
-                />
-              </div>
-            </li>
-          ))}
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <EditSupplementModal supplement={sup}>
+                    <Pencil size={16} />
+                    </EditSupplementModal>
+                    <RemoveButton 
+                    action={() => deleteSupplement(sup.id)} 
+                    itemDescription={`the supplement "${sup.name}"`} 
+                    />
+                </div>
+                </li>
+            )
+          })}
         </ul>
       ) : (
         <div className="text-center py-16">
