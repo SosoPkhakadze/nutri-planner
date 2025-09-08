@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
-import Card from "../ui/Card";
+import Card from "@/components/ui/Card"; // Corrected import path
 import { Calendar, Layers } from "lucide-react";
-import { applyTemplateToDate } from '@/app/actions/templates'; // We'll create this action
+import { applyTemplateToDate } from '@/app/actions/templates';
 import { useRouter } from 'next/navigation';
 
 export default function TemplateCard({ template }: { template: any }) {
@@ -12,7 +12,6 @@ export default function TemplateCard({ template }: { template: any }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   
-  // Get today's date in YYYY-MM-DD format for the date picker default
   const today = new Date().toISOString().split('T')[0];
   const [applyDate, setApplyDate] = useState(today);
 
@@ -21,7 +20,6 @@ export default function TemplateCard({ template }: { template: any }) {
       const result = await applyTemplateToDate(template.id, applyDate);
       if (result?.success) {
         dialogRef.current?.close();
-        // Redirect the user to the planner for that week to see the result
         router.push(`/planner?week=${applyDate}`);
       } else {
         alert(result?.error || 'Failed to apply template.');
@@ -38,7 +36,6 @@ export default function TemplateCard({ template }: { template: any }) {
             <Layers size={16} />
             <span className="capitalize">{template.type} Template</span>
           </div>
-          {/* We can add a preview of the template data here later */}
         </div>
         <button
           onClick={() => dialogRef.current?.showModal()}

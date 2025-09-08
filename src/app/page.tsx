@@ -112,52 +112,54 @@ export default async function DashboardPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="p-6 flex flex-col items-center justify-center text-center">
-              <h2 className="text-xl font-semibold mb-4">Calories</h2>
-              <div className="relative">
-                <ProgressRing progress={calorieProgress} />
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold">{Math.round(consumedCalories)}</span>
-                  <span className="text-sm text-gray-400">/ {targetCalories}</span>
-                </div>
+          <Card className="p-6 flex flex-col items-center justify-center text-center">
+            <h2 className="text-xl font-semibold mb-4">Calories</h2>
+            <div className="relative">
+              <ProgressRing progress={calorieProgress > 100 ? 100 : calorieProgress} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`font-bold ${consumedCalories > 9999 ? 'text-xl' : 'text-2xl'}`}>
+                  {consumedCalories.toLocaleString()}
+                </span>
+                <span className="text-sm text-gray-400">/ {targetCalories.toLocaleString()}</span>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Macros</h2>
-              <div className="space-y-4">
-                {/* Protein */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Protein</span>
-                    <span className="font-semibold">{Math.round(consumedProtein)}g / {targetProtein}g</span>
-                  </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetProtein > 0 ? (consumedProtein/targetProtein)*100 : 0}%` }}></div>
-                  </div>
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Macros</h2>
+            <div className="space-y-4">
+              {/* Protein */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Protein</span>
+                  <span className="font-semibold">{Math.round(consumedProtein)}g / {targetProtein}g</span>
                 </div>
-                {/* Carbs */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Carbs</span>
-                    <span className="font-semibold">{Math.round(consumedCarbs)}g / {targetCarbs}g</span>
-                  </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetCarbs > 0 ? (consumedCarbs/targetCarbs)*100 : 0}%` }}></div>
-                  </div>
-                </div>
-                {/* Fat */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Fat</span>
-                    <span className="font-semibold">{Math.round(consumedFat)}g / {targetFat}g</span>
-                  </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetFat > 0 ? (consumedFat/targetFat)*100 : 0}%` }}></div>
-                  </div>
+                <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden"> {/* Added overflow-hidden */}
+                  <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetProtein > 0 ? Math.min(100, (consumedProtein/targetProtein)*100) : 0}%` }}></div> {/* Added Math.min */}
                 </div>
               </div>
-            </Card>
+              {/* Carbs */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Carbs</span>
+                  <span className="font-semibold">{Math.round(consumedCarbs)}g / {targetCarbs}g</span>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden"> {/* Added overflow-hidden */}
+                  <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetCarbs > 0 ? Math.min(100, (consumedCarbs/targetCarbs)*100) : 0}%` }}></div> {/* Added Math.min */}
+                </div>
+              </div>
+              {/* Fat */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Fat</span>
+                  <span className="font-semibold">{Math.round(consumedFat)}g / {targetFat}g</span>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden"> {/* Added overflow-hidden */}
+                  <div className="bg-cyan-500 h-2 rounded-full" style={{ width: `${targetFat > 0 ? Math.min(100, (consumedFat/targetFat)*100) : 0}%` }}></div> {/* Added Math.min */}
+                </div>
+              </div>
+            </div>
+          </Card>
           </div>
         </div>
       </main>
