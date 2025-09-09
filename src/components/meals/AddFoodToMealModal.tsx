@@ -3,8 +3,9 @@
 
 import { useState, useRef, useTransition } from 'react';
 import { addFoodToMeal } from '@/app/actions/meals';
+import PrimaryButton from '../ui/PrimaryButton';
+import { X } from 'lucide-react';
 
-// Define a more specific type for our food items
 interface FoodItem {
   id: string;
   name: string;
@@ -28,7 +29,7 @@ export default function AddFoodToMealModal({ mealId, foodItems }: AddFoodToMealM
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
-  const [weight, setWeight] = useState(100); // Default to 100g
+  const [weight, setWeight] = useState(100);
 
   const filteredItems = searchTerm ? foodItems.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,7 +38,7 @@ export default function AddFoodToMealModal({ mealId, foodItems }: AddFoodToMealM
 
   const handleSelectFood = (food: FoodItem) => {
     setSelectedFood(food);
-    setSearchTerm(food.name); // Put the name in the search bar
+    setSearchTerm(food.name);
   };
 
   const handleAddFood = () => {
@@ -55,10 +56,11 @@ export default function AddFoodToMealModal({ mealId, foodItems }: AddFoodToMealM
   
   const handleClose = () => {
     dialogRef.current?.close();
-    // Reset state on close
-    setSearchTerm('');
-    setSelectedFood(null);
-    setWeight(100);
+    setTimeout(() => {
+      setSearchTerm('');
+      setSelectedFood(null);
+      setWeight(100);
+    }, 200); // delay reset to prevent jarring UI shift
   };
 
   return (
@@ -70,66 +72,69 @@ export default function AddFoodToMealModal({ mealId, foodItems }: AddFoodToMealM
         Add Food
       </button>
       
-      <dialog ref={dialogRef} onClose={handleClose} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-lg">
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">Add Food to Meal</h2>
+      <dialog ref={dialogRef} onClose={handleClose} className="bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm p-4 w-full max-w-lg rounded-2xl">
+        <div className="bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-2xl w-full border border-slate-700/50 overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-transparent flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-white">Add Food to Meal</h2>
+            <button onClick={handleClose} className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors">
+              <X size={20} />
+            </button>
+          </div>
           
-          {selectedFood ? (
-            <div className="space-y-4 animate-fade-in">
-              <div className="p-4 bg-slate-700 rounded-md">
-                <p className="font-bold text-lg">{selectedFood.name}</p>
-                <p className="text-sm text-gray-400">Per 100g: {selectedFood.calories} kcal, {selectedFood.protein_g}g Protein</p>
-              </div>
-              <div>
-                <label htmlFor="weight" className="block text-sm font-medium">Weight (g)</label>
-                <input
-                  type="number"
-                  id="weight"
-                  value={weight}
-                  onChange={(e) => setWeight(parseFloat(e.target.value))}
-                  step="1"
-                  min="1"
-                  className="mt-1 w-full bg-slate-900 p-2 rounded-md"
-                />
-              </div>
-              <div className="flex justify-between items-center pt-4">
-                <button onClick={() => setSelectedFood(null)} className="text-sm text-cyan-400 hover:underline">
-                  &larr; Back to search
-                </button>
-                <div className="flex gap-4">
-                  <button type="button" onClick={handleClose} className="px-4 py-2 rounded-md text-gray-300 hover:bg-slate-700">Cancel</button>
-                  <button onClick={handleAddFood} disabled={isPending} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 font-semibold rounded-md">
-                    {isPending ? "Adding..." : "Add to Meal"}
+          <div className="p-6">
+            {selectedFood ? (
+              <div className="space-y-6 animate-fade-in">
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                  <p className="font-bold text-lg text-white">{selectedFood.name}</p>
+                  <p className="text-sm text-slate-400">Per 100g: {selectedFood.calories} kcal, {selectedFood.protein_g}g Protein</p>
+                </div>
+                <div>
+                  <label htmlFor="weight" className="block text-sm font-medium text-slate-400 mb-1">Weight (g)</label>
+                  <input
+                    type="number"
+                    id="weight"
+                    value={weight}
+                    onChange={(e) => setWeight(parseFloat(e.target.value))}
+                    step="1"
+                    min="1"
+                    className="w-full bg-slate-800 border border-slate-700 p-2 rounded-md"
+                  />
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <button onClick={() => setSelectedFood(null)} className="text-sm text-cyan-400 hover:underline">
+                    &larr; Back to search
                   </button>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={handleClose} className="px-4 py-2 rounded-xl text-slate-300 bg-slate-800/50 hover:bg-slate-800 transition-colors">Cancel</button>
+                    <PrimaryButton onClick={handleAddFood} disabled={isPending}>
+                      {isPending ? "Adding..." : "Add to Meal"}
+                    </PrimaryButton>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="animate-fade-in">
-              <input
-                type="text"
-                placeholder="Search your food database..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-700 p-2 rounded-md mb-4"
-              />
-              <div className="max-h-60 overflow-y-auto">
-                {filteredItems.length > 0 ? (
-                  <ul>
-                    {filteredItems.map(item => (
-                      <li key={item.id} onClick={() => handleSelectFood(item)} className="p-3 hover:bg-slate-700 rounded-md cursor-pointer">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-sm text-gray-400">{item.serving_size}{item.serving_unit} &bull; {item.calories} kcal</p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : searchTerm && <p className="text-center text-gray-500 py-4">No matching food found.</p>}
+            ) : (
+              <div className="animate-fade-in">
+                <input
+                  type="text"
+                  placeholder="Search your food database..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-4 focus:ring-2 focus:ring-cyan-500"
+                />
+                <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                  {filteredItems.length > 0 ? (
+                    filteredItems.slice(0, 50).map(item => (
+                      <div key={item.id} onClick={() => handleSelectFood(item)} className="p-3 bg-slate-800/50 hover:bg-slate-800 rounded-lg cursor-pointer transition-colors border border-slate-700/50">
+                        <p className="font-semibold text-white">{item.name}</p>
+                        <p className="text-sm text-slate-400">{item.serving_size}{item.serving_unit} &bull; {item.calories} kcal</p>
+                      </div>
+                    ))
+                  ) : searchTerm && <p className="text-center text-slate-500 py-8">No matching food found.</p>}
+                </div>
               </div>
-              <div className="flex justify-end pt-4">
-                <button type="button" onClick={handleClose} className="px-4 py-2 rounded-md text-gray-300 hover:bg-slate-700">Close</button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </dialog>
     </>

@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* 
+  Custom global style to restore browser's default centering for <dialog> elements.
+*/
+dialog {
+  margin: auto;
+}
+
+/* 
+  Custom animations for modals to give them a polished feel.
+*/
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Apply animations to the dialog and its backdrop when it's open */
+dialog[open] {
+  animation: scaleIn 0.2s ease-out;
+}
+
+dialog::backdrop {
+  animation: fadeIn 0.2s ease-out;
+}

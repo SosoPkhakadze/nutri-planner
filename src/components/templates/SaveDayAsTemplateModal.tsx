@@ -3,7 +3,8 @@
 
 import { useRef, useTransition } from 'react';
 import { saveDayAsTemplate } from '@/app/actions/templates';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, X } from 'lucide-react';
+import PrimaryButton from '../ui/PrimaryButton';
 
 interface SaveDayAsTemplateModalProps {
   date: string; // YYYY-MM-DD format
@@ -16,7 +17,6 @@ export default function SaveDayAsTemplateModal({ date, hasMeals }: SaveDayAsTemp
   const [isPending, startTransition] = useTransition();
 
   const handleAction = (formData: FormData) => {
-    // We need to pass the date along with the form data
     formData.append('date', date);
 
     startTransition(async () => {
@@ -24,7 +24,7 @@ export default function SaveDayAsTemplateModal({ date, hasMeals }: SaveDayAsTemp
       if (result?.success) {
         dialogRef.current?.close();
         formRef.current?.reset();
-        alert('Template saved successfully!'); // simple feedback for now
+        alert('Template saved successfully!');
       } else {
         alert(result?.error || 'Failed to save template.');
       }
@@ -42,30 +42,37 @@ export default function SaveDayAsTemplateModal({ date, hasMeals }: SaveDayAsTemp
         Save Day as Template
       </button>
 
-      <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-md">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Save Day as Template</h2>
-            <button onClick={() => dialogRef.current?.close()} className="text-gray-400 hover:text-white">&times;</button>
+      <dialog ref={dialogRef} className="bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm p-4 w-full max-w-md rounded-2xl">
+        <div className="bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-2xl w-full border border-slate-700/50 overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-transparent flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Save Day as Template</h2>
+              <p className="text-slate-400 mt-1">Save the current day's plan for later.</p>
+            </div>
+            <button onClick={() => dialogRef.current?.close()} className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors">
+              <X size={20} />
+            </button>
           </div>
           
-          <form ref={formRef} action={handleAction} className="space-y-4">
-            <div>
-              <label htmlFor="templateName" className="block text-sm font-medium text-gray-300">Template Name</label>
+          <form ref={formRef} action={handleAction}>
+            <div className="p-6">
+              <label htmlFor="templateName" className="block text-sm font-medium text-slate-400 mb-1">Template Name</label>
               <input
                 type="text"
                 id="templateName"
                 name="templateName"
                 required
-                className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm p-2"
-                placeholder="e.g., High-Protein Rest Day, Monday Special"
+                className="w-full bg-slate-800 border border-slate-700 p-2 rounded-md shadow-sm"
+                placeholder="e.g., High-Protein Rest Day"
               />
             </div>
-            <div className="flex justify-end gap-4 pt-4">
-              <button type="button" onClick={() => dialogRef.current?.close()} className="px-4 py-2 rounded-md text-gray-300 hover:bg-slate-700">Cancel</button>
-              <button type="submit" disabled={isPending} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition disabled:bg-slate-600">
+            
+            <div className="p-6 bg-slate-900/70 border-t border-slate-700/50 flex justify-end gap-3">
+              <button type="button" onClick={() => dialogRef.current?.close()} className="px-4 py-2 rounded-xl text-slate-300 bg-slate-800/50 hover:bg-slate-800 transition-colors">Cancel</button>
+              <PrimaryButton type="submit" disabled={isPending}>
                 {isPending ? 'Saving...' : 'Save Template'}
-              </button>
+              </PrimaryButton>
             </div>
           </form>
         </div>

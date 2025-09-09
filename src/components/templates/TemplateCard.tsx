@@ -4,10 +4,11 @@
 import { useState, useRef, useTransition, useMemo } from 'react';
 import { GlassCard } from "@/components/ui/Card";
 import RemoveButton from "@/components/ui/RemoveButton";
-import { CalendarDays, Utensils, Clock, TrendingUp, Zap, Target, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
+import { CalendarDays, Utensils, Clock, Sparkles, ChevronDown, CheckCircle2, X } from "lucide-react";
 import { applyTemplateToDate, deleteTemplate } from '@/app/actions/templates';
 import { useRouter } from 'next/navigation';
 import type { FoodItem } from '@/lib/types';
+import PrimaryButton from '../ui/PrimaryButton';
 
 interface TemplateCardProps {
   template: any;
@@ -143,17 +144,22 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
         </GlassCard>
       </div>
 
-      {/* Modal - Unchanged */}
-      <dialog ref={dialogRef} className="backdrop:bg-black/50 backdrop:backdrop-blur-sm p-0 bg-transparent">
-        <div className="bg-slate-900/95 backdrop-blur-xl text-white p-0 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50">
-          <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
-            <h2 className="text-2xl font-bold text-white">Apply Template</h2>
-            <p className="text-slate-400 mt-1">"{template.title}"</p>
+      {/* Modal */}
+      <dialog ref={dialogRef} className="bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm p-4 w-full max-w-md rounded-2xl">
+        <div className="bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-2xl w-full border border-slate-700/50 overflow-hidden">
+          <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-transparent flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Apply Template</h2>
+              <p className="text-slate-400 mt-1 truncate">"{template.title}"</p>
+            </div>
+            <button onClick={() => dialogRef.current?.close()} className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors">
+              <X size={20} />
+            </button>
           </div>
           
           <div className="p-6 space-y-6">
             <div>
-              <label htmlFor="applyDate" className="block text-sm font-medium text-slate-300 mb-3">
+              <label htmlFor="applyDate" className="block text-sm font-medium text-slate-300 mb-2">
                 Select a date to apply this template:
               </label>
               <input
@@ -180,19 +186,15 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
             </div>
           </div>
           
-          <div className="p-6 pt-0 flex justify-end gap-3">
+          <div className="p-6 bg-slate-900/70 border-t border-slate-700/50 flex justify-end gap-3">
             <button 
               type="button" 
               onClick={() => dialogRef.current?.close()} 
-              className="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-slate-300 bg-slate-800/50 hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleApply} 
-              disabled={isPending}
-              className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25"
-            >
+            <PrimaryButton onClick={handleApply} disabled={isPending}>
               {isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -201,7 +203,7 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
               ) : (
                 'Apply to Date'
               )}
-            </button>
+            </PrimaryButton>
           </div>
         </div>
       </dialog>
