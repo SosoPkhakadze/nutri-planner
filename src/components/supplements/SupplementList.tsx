@@ -91,7 +91,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
           </h1>
           <p className="text-slate-400 mt-1">Manage and track your daily supplement routine.</p>
         </div>
-        {/* The AddSupplementModal now wraps our button component */}
         <AddSupplementModal onSuccess={handleAddSuccess}>
           <AddButton />
         </AddSupplementModal>
@@ -125,7 +124,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                 <div className="divide-y divide-slate-700/50">
                   {activeSupplements.map(sup => (
                     <div key={sup.id} className="group p-6 hover:bg-slate-800/30 transition-colors">
-                       {/* Content unchanged... */}
                        <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 pt-1">
                           <label className="relative inline-flex items-center cursor-pointer">
@@ -144,7 +142,12 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                           {formatNutrition(sup) && <div className="flex items-center gap-2 mb-3"><Zap size={14} className="text-cyan-400" /><span className="text-cyan-400/80 text-sm">{formatNutrition(sup)}</span></div>}
                         </div>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}><div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"><Pencil size={16} /></div></EditSupplementModal>
+                          {/* THIS IS THE CONFIRMATION: The child is now a div */}
+                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}>
+                            <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+                                <Pencil size={16} />
+                            </div>
+                          </EditSupplementModal>
                           <RemoveButton action={handleDeleteAction(sup.id)} itemDescription={`the supplement "${sup.name}"`} />
                         </div>
                       </div>
@@ -169,7 +172,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                 <div className="divide-y divide-slate-700/30">
                   {inactiveSupplements.map(sup => (
                      <div key={sup.id} className="group p-6 hover:bg-slate-800/20 transition-colors">
-                      {/* Content unchanged... */}
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 pt-1">
                           <label className="relative inline-flex items-center cursor-pointer">
@@ -188,7 +190,12 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                           {formatNutrition(sup) && <div className="flex items-center gap-2 mb-3"><Zap size={14} className="text-slate-500" /><span className="text-slate-500 text-sm">{formatNutrition(sup)}</span></div>}
                         </div>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}><div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"><Pencil size={16} /></div></EditSupplementModal>
+                           {/* THIS IS THE CONFIRMATION: The child is now a div */}
+                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}>
+                            <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+                                <Pencil size={16} />
+                            </div>
+                          </EditSupplementModal>
                           <RemoveButton action={handleDeleteAction(sup.id)} itemDescription={`the supplement "${sup.name}"`} />
                         </div>
                       </div>

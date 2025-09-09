@@ -3,7 +3,7 @@
 
 import { useRef, useTransition, ReactNode } from 'react';
 import { updateSupplement } from '@/app/actions/tracking';
-import { type Supplement } from '@/lib/types'; // Import the centralized type
+import { type Supplement } from '@/lib/types';
 
 interface EditSupplementModalProps {
   supplement: Supplement;
@@ -30,9 +30,10 @@ export default function EditSupplementModal({ supplement, children, onSuccess }:
 
   return (
     <>
-      <button onClick={() => dialogRef.current?.showModal()} className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-700">
+      {/* THIS IS THE FIX: Changed from <button> to <div> to prevent nesting error */}
+      <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer">
         {children}
-      </button>
+      </div>
       
       <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-lg">
         <div className="p-6">
