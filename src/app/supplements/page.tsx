@@ -2,7 +2,6 @@
 import Header from "@/components/Header";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-// We no longer need AddSupplementModal here
 import SupplementList from "@/components/supplements/SupplementList";
 
 export default async function SupplementsPage() {
@@ -22,16 +21,8 @@ export default async function SupplementsPage() {
   return (
     <div>
       <Header />
-      <main className="container mx-auto p-4 md-p-8">
-        <div className="flex justify-between items-center mb-2 flex-wrap gap-4">
-          <h1 className="text-3xl font-bold">Your Supplements</h1>
-          {/* THE "ADD SUPPLEMENT" BUTTON HAS BEEN REMOVED FROM HERE */}
-        </div>
-        <p className="text-sm text-gray-400 mb-6">
-          Use the checkbox to mark a supplement as 'active'. Active supplements will appear on your daily dashboard for tracking.
-        </p>
-        
-        {/* This component now handles everything */}
+      <main className="container mx-auto p-4 md:p-8">
+        {/* The SupplementList component now contains the header and add button */}
         <SupplementList initialSupplements={supplements || []} />
       </main>
     </div>

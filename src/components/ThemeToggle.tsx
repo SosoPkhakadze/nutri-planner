@@ -5,53 +5,47 @@ import { Sun, Moon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [theme, setTheme] = useState('dark');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme in localStorage and system preference
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
     
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      document.documentElement.classList.add('dark');
-      setIsDarkMode(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setIsDarkMode(false);
-    }
-    
-    setIsLoaded(true);
+    setTheme(initialTheme);
+    setIsMounted(true);
   }, []);
+  
+  useEffect(() => {
+    if (isMounted) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme, isMounted]);
 
   const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    }
-    setIsDarkMode(!isDarkMode);
+    setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  // Render a placeholder until the component is loaded on the client
-  if (!isLoaded) {
-    return (
-      <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-slate-700 animate-pulse"></div>
-    );
+  if (!isMounted) {
+    return <div className="w-10 h-10 rounded-lg bg-slate-700 animate-pulse"></div>;
   }
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2.5 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 transition-all duration-200"
+      className="p-2.5 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-slate-300 hover:text-white transition-all duration-200"
       aria-label="Toggle theme"
     >
-      {isDarkMode ? (
-        <Sun size={16} className="text-yellow-500" />
+      {theme === 'dark' ? (
+        <Sun size={18} className="text-yellow-400" />
       ) : (
-        <Moon size={16} className="text-slate-700" />
+        <Moon size={18} className="text-slate-700" />
       )}
     </button>
   );

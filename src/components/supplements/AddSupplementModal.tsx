@@ -1,16 +1,16 @@
 // src/components/supplements/AddSupplementModal.tsx
 'use client';
 
-import { useRef, useTransition } from 'react';
+import { useRef, useTransition, ReactNode } from 'react';
 import { addSupplement } from '@/app/actions/tracking';
-import { PlusCircle } from 'lucide-react';
 import { type Supplement } from '@/lib/types';
 
 interface AddSupplementModalProps {
+  children: ReactNode; // Accept children to act as the trigger
   onSuccess?: (newSupplement: Supplement) => void;
 }
 
-export default function AddSupplementModal({ onSuccess }: AddSupplementModalProps) {
+export default function AddSupplementModal({ children, onSuccess }: AddSupplementModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -30,13 +30,9 @@ export default function AddSupplementModal({ onSuccess }: AddSupplementModalProp
 
   return (
     <>
-      <button
-        onClick={() => dialogRef.current?.showModal()}
-        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2"
-      >
-        <PlusCircle size={18} />
-        Add Supplement
-      </button>
+      <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer">
+        {children}
+      </div>
       
       <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-lg">
         <div className="p-6">
