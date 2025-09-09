@@ -5,20 +5,22 @@ import NoSsr from './NoSsr';
 import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings } from 'lucide-react'; // Import Settings icon
+import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings, LogOut } from 'lucide-react'; // 1. Import LogOut icon
 import { useState } from 'react';
+import SignOutButton from './SignOutButton'; // 2. Import the SignOutButton
 
 export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // ... (navItems and other code remains the same)
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/planner', label: 'Planner', icon: Calendar },
     { path: '/food-db', label: 'Food DB', icon: Database },
     { path: '/templates', label: 'Templates', icon: FileText },
     { path: '/supplements', label: 'Supplements', icon: Pill },
-    { path: '/settings', label: 'Settings', icon: Settings }, // <-- ADDED
+    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const navLinkClasses = (path: string) => 
@@ -27,14 +29,14 @@ export default function Header() {
         ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
         : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
     }`;
-
-  const mobileNavLinkClasses = (path: string) => 
-    `flex items-center gap-4 px-6 py-4 text-lg font-medium transition-all duration-200 ${
-      pathname === path 
-        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white' 
-        : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-    }`;
   
+  const mobileNavLinkClasses = (path: string) => 
+  `flex items-center gap-4 px-6 py-4 text-lg font-medium transition-all duration-200 ${
+    pathname === path 
+      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white' 
+      : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+  }`;
+
   const BrandIcon = () => (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
       <defs>
@@ -58,6 +60,7 @@ export default function Header() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <Link href="/" className="flex items-center space-x-4 group">
+              {/* ... brand icon and title ... */}
               <div className="relative">
                 <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
                 <div className="relative w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -73,17 +76,26 @@ export default function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center space-x-2">
-              {navItems.map(({ path, label, icon: Icon }) => (
-                <Link key={path} href={path} className={navLinkClasses(path)}>
-                  <Icon size={18} />
-                  <span>{label}</span>
-                  {pathname === path && ( <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-600/20 to-blue-600/20 -z-10"></div> )}
-                </Link>
-              ))}
+                {/* ... nav items ... */}
+                {navItems.map(({ path, label, icon: Icon }) => (
+                  <Link key={path} href={path} className={navLinkClasses(path)}>
+                    <Icon size={18} />
+                    <span>{label}</span>
+                    {pathname === path && ( <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-600/20 to-blue-600/20 -z-10"></div> )}
+                  </Link>
+                ))}
             </nav>
 
             <div className="flex items-center gap-4">
-              <NoSsr><div className="hidden md:block"><ThemeToggle /></div></NoSsr>
+              <NoSsr>
+                  {/* 3. Add SignOutButton for desktop view */}
+                  <div className="hidden lg:flex items-center gap-4">
+                      <ThemeToggle />
+                      <SignOutButton className="p-2.5 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-slate-300 hover:text-white transition-all duration-200">
+                          <LogOut size={18} />
+                      </SignOutButton>
+                  </div>
+              </NoSsr>
               <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-2 rounded-lg bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors">
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -95,9 +107,10 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="absolute top-0 right-0 w-80 max-w-[90vw] h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700/50">
+          <div className="absolute top-0 right-0 w-80 max-w-[90vw] h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700/50 flex flex-col">
             <div className="p-6">
               <div className="flex items-center justify-between mb-8">
+                {/* ... mobile menu header ... */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center">
                     <BrandIcon />
@@ -109,6 +122,7 @@ export default function Header() {
                 </button>
               </div>
               <nav className="space-y-2">
+                {/* ... mobile nav items ... */}
                 {navItems.map(({ path, label, icon: Icon }) => (
                   <Link key={path} href={path} className={`${mobileNavLinkClasses(path)} rounded-xl`} onClick={() => setIsMobileMenuOpen(false)}>
                     <Icon size={20} />
@@ -116,10 +130,19 @@ export default function Header() {
                   </Link>
                 ))}
               </nav>
-              <div className="mt-8 pt-6 border-t border-slate-700/50">
-                <NoSsr><div className="flex items-center justify-between px-2"><span className="text-slate-300 font-medium">Theme</span><ThemeToggle /></div></NoSsr>
-              </div>
             </div>
+            
+            {/* 4. Add SignOutButton for mobile view */}
+            <div className="mt-auto p-6 space-y-6">
+                <div className="pt-6 border-t border-slate-700/50">
+                    <NoSsr><div className="flex items-center justify-between px-2"><span className="text-slate-300 font-medium">Theme</span><ThemeToggle /></div></NoSsr>
+                </div>
+                <SignOutButton className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 font-semibold rounded-xl transition-colors">
+                    <LogOut size={18} />
+                    <span>Sign Out</span>
+                </SignOutButton>
+            </div>
+
           </div>
         </div>
       )}

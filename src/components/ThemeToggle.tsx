@@ -2,40 +2,25 @@
 'use client';
 
 import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider'; // 1. Import the hook
 import { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState('dark');
+  const { theme, toggleTheme } = useTheme(); // 2. Use the hook
   const [isMounted, setIsMounted] = useState(false);
 
+  // This effect prevents the button from rendering on the server
+  // and causing a hydration mismatch.
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-    
-    setTheme(initialTheme);
     setIsMounted(true);
   }, []);
-  
-  useEffect(() => {
-    if (isMounted) {
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      localStorage.setItem('theme', theme);
-    }
-  }, [theme, isMounted]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
-  };
 
   if (!isMounted) {
+    // Render a placeholder on the server
     return <div className="w-10 h-10 rounded-lg bg-slate-700 animate-pulse"></div>;
   }
 
+  // 3. The component is now much simpler
   return (
     <button
       onClick={toggleTheme}
