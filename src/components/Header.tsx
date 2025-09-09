@@ -2,18 +2,16 @@
 'use client'; 
 
 import NoSsr from './NoSsr';
-import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings, LogOut } from 'lucide-react'; // 1. Import LogOut icon
+import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings, LogOut } from 'lucide-react';
 import { useState } from 'react';
-import SignOutButton from './SignOutButton'; // 2. Import the SignOutButton
+import SignOutButton from './SignOutButton';
 
 export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ... (navItems and other code remains the same)
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/planner', label: 'Planner', icon: Calendar },
@@ -59,8 +57,8 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
+            {/* ... brand and nav links ... */}
             <Link href="/" className="flex items-center space-x-4 group">
-              {/* ... brand icon and title ... */}
               <div className="relative">
                 <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
                 <div className="relative w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -76,7 +74,6 @@ export default function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center space-x-2">
-                {/* ... nav items ... */}
                 {navItems.map(({ path, label, icon: Icon }) => (
                   <Link key={path} href={path} className={navLinkClasses(path)}>
                     <Icon size={18} />
@@ -88,9 +85,8 @@ export default function Header() {
 
             <div className="flex items-center gap-4">
               <NoSsr>
-                  {/* 3. Add SignOutButton for desktop view */}
                   <div className="hidden lg:flex items-center gap-4">
-                      <ThemeToggle />
+                      {/* REMOVE <ThemeToggle /> */}
                       <SignOutButton className="p-2.5 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-slate-300 hover:text-white transition-all duration-200">
                           <LogOut size={18} />
                       </SignOutButton>
@@ -109,8 +105,8 @@ export default function Header() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
           <div className="absolute top-0 right-0 w-80 max-w-[90vw] h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700/50 flex flex-col">
             <div className="p-6">
+              {/* ... mobile header and nav ... */}
               <div className="flex items-center justify-between mb-8">
-                {/* ... mobile menu header ... */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center">
                     <BrandIcon />
@@ -122,7 +118,6 @@ export default function Header() {
                 </button>
               </div>
               <nav className="space-y-2">
-                {/* ... mobile nav items ... */}
                 {navItems.map(({ path, label, icon: Icon }) => (
                   <Link key={path} href={path} className={`${mobileNavLinkClasses(path)} rounded-xl`} onClick={() => setIsMobileMenuOpen(false)}>
                     <Icon size={20} />
@@ -132,11 +127,8 @@ export default function Header() {
               </nav>
             </div>
             
-            {/* 4. Add SignOutButton for mobile view */}
             <div className="mt-auto p-6 space-y-6">
-                <div className="pt-6 border-t border-slate-700/50">
-                    <NoSsr><div className="flex items-center justify-between px-2"><span className="text-slate-300 font-medium">Theme</span><ThemeToggle /></div></NoSsr>
-                </div>
+                {/* REMOVE the section for the theme toggle */}
                 <SignOutButton className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 font-semibold rounded-xl transition-colors">
                     <LogOut size={18} />
                     <span>Sign Out</span>
