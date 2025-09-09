@@ -1,15 +1,15 @@
 // src/components/meals/AddMealModal.tsx
 'use client';
 
-import { useRef, useTransition } from 'react';
+import { useRef, useTransition, ReactNode } from 'react';
 import { addMeal } from '@/app/actions/meals';
-import { PlusCircle } from 'lucide-react';
 
 interface AddMealModalProps {
   date: string; // YYYY-MM-DD
+  children: ReactNode; // Accept children to act as the trigger
 }
 
-export default function AddMealModal({ date }: AddMealModalProps) {
+export default function AddMealModal({ date, children }: AddMealModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -29,13 +29,10 @@ export default function AddMealModal({ date }: AddMealModalProps) {
 
   return (
     <>
-      <button
-        onClick={() => dialogRef.current?.showModal()}
-        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2 text-sm"
-      >
-        <PlusCircle size={18} />
-        Add Meal
-      </button>
+      {/* The trigger for the modal is now passed in as children */}
+      <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer">
+        {children}
+      </div>
 
       <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-md">
         <div className="p-6">
