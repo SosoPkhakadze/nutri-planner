@@ -51,7 +51,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     foodItemsRes, 
     dayStatusRes, 
     supplementsRes, 
-    supplementLogsRes
+    supplementLogsRes,
+    dailyGoalRes, // <-- NEW: Fetch daily goal
   ] = await Promise.all([
     supabase
       .from("meals")
@@ -83,7 +84,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       .from("supplement_logs")
       .select('supplement_id')
       .eq('user_id', user.id)
+      .eq('date', displayDateString),
+    // <-- NEW: Query for the daily goal
+    supabase
+      .from('daily_goals')
+      .select('*')
+      .eq('user_id', user.id)
       .eq('date', displayDateString)
+      .single(),
   ]);
     
   // --- DATA PROCESSING ---
@@ -102,20 +110,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const dayStatus = (dayStatusRes.data?.status as "pending" | "complete") || "pending";
   const activeSupplements = supplementsRes.data || [];
   const loggedSupplementIds = supplementLogsRes.data?.map(log => log.supplement_id) || [];
+  const dailyGoal = dailyGoalRes.data; // <-- NEW: Get daily goal data
   
-  // Create a map for easy lookup
   const supplementMap = new Map(activeSupplements.map(s => [s.id, s]));
 
-  // --- DAILY TOTALS CALCULATION ---
   let consumedCalories = 0,
     consumedProtein = 0,
     consumedCarbs = 0,
     consumedFat = 0;
 
-  // Add calories/protein from meals
   if (meals) {
     for (const meal of meals) {
-      if (meal.status === "done") { // Only 'done' meals are counted
+      if (meal.status === "done") {
         for (const mealFood of meal.meal_foods) {
           if (mealFood.food_items) {
             const multiplier = mealFood.weight_g / 100;
@@ -129,16 +135,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
   }
 
-  // Add calories/protein from LOGGED supplements
   for (const supplementId of loggedSupplementIds) {
     const supplement = supplementMap.get(supplementId);
     if (supplement) {
-      // This is the crucial part that adds supplement nutrition
       consumedCalories += supplement.calories_per_serving || 0;
       consumedProtein += supplement.protein_g_per_serving || 0;
-      // Note: We don't add carbs or fat from supplements unless we add those fields later
     }
   }
+  
+  // --- NEW LOGIC: Determine final targets ---
+  // Use daily goal if it exists, otherwise fall back to baseline profile goals.
+  const targets = {
+    calories: dailyGoal?.calories ?? userProfile.baseline_calories ?? 2500,
+    protein: dailyGoal?.protein_g ?? userProfile.baseline_macros?.protein_g ?? 150,
+    carbs: dailyGoal?.carbs_g ?? userProfile.baseline_macros?.carbs_g ?? 300,
+    fat: dailyGoal?.fat_g ?? userProfile.baseline_macros?.fat_g ?? 70,
+  };
+  const dailyWaterGoalMl = dailyGoal?.water_ml ?? userProfile.daily_water_goal_ml ?? 3000;
+
 
   // --- PROPS FOR CLIENT COMPONENT ---
   const props = {
@@ -154,15 +168,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     },
     dayStatus,
     dailyTotals: { consumedCalories, consumedProtein, consumedCarbs, consumedFat },
-    targets: {
-      calories: userProfile.baseline_calories || 2500,
-      protein: userProfile.baseline_macros?.protein_g || 150,
-      carbs: userProfile.baseline_macros?.carbs_g || 300,
-      fat: userProfile.baseline_macros?.fat_g || 70,
-    },
+    targets, // <-- Pass the final calculated targets
     totalWaterMl,
-    dailyWaterGoalMl: userProfile.daily_water_goal_ml || 3000,
-    // New props for supplements
+    dailyWaterGoalMl, // <-- Pass the final water goal
     activeSupplements,
     loggedSupplementIds,
   };

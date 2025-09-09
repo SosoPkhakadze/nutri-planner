@@ -5,7 +5,7 @@ import NoSsr from './NoSsr';
 import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, Database, FileText, Pill, Menu, X } from 'lucide-react';
+import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings } from 'lucide-react'; // Import Settings icon
 import { useState } from 'react';
 
 export default function Header() {
@@ -18,6 +18,7 @@ export default function Header() {
     { path: '/food-db', label: 'Food DB', icon: Database },
     { path: '/templates', label: 'Templates', icon: FileText },
     { path: '/supplements', label: 'Supplements', icon: Pill },
+    { path: '/settings', label: 'Settings', icon: Settings }, // <-- ADDED
   ];
 
   const navLinkClasses = (path: string) => 
@@ -34,7 +35,6 @@ export default function Header() {
         : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
     }`;
   
-  // A NEW, more sophisticated SVG Icon Component
   const BrandIcon = () => (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
       <defs>
