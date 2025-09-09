@@ -16,13 +16,16 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return redirect('/login');
 
+  // ✅ Await searchParams
+  const params = await searchParams;
+  
   // --- Date Calculation ---
   const toISODate = (date: Date) => date.toISOString().split('T')[0];
   const todayUTC = new Date(new Date().toISOString().split('T')[0]);
 
   let referenceDate: Date;
-  if (searchParams?.week && typeof searchParams.week === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.week)) {
-    referenceDate = new Date(searchParams.week);
+  if (params?.week && typeof params.week === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(params.week)) {
+    referenceDate = new Date(params.week);
   } else {
     referenceDate = todayUTC;
   }
