@@ -5,15 +5,13 @@ import { useState, useTransition } from 'react';
 import { GlassCard } from '../ui/Card';
 import RemoveButton from '../ui/RemoveButton';
 import { deleteSupplement, toggleSupplementActive } from '@/app/actions/tracking';
-import { Pencil, Plus, Pill, Zap, Activity, AlertCircle, CheckCircle2, PlusCircle } from 'lucide-react';
+import { Pencil, Pill, Zap, Activity, AlertCircle, CheckCircle2, PlusCircle } from 'lucide-react';
 import EditSupplementModal from './EditSupplementModal';
 import AddSupplementModal from './AddSupplementModal';
 import { type Supplement } from '@/lib/types';
+import PrimaryButton from '../ui/PrimaryButton'; // Import the new button
 
-interface SupplementListProps {
-  initialSupplements: Supplement[];
-}
-
+// ... (formatDosage and formatNutrition functions remain the same)
 function formatDosage(sup: Supplement): string {
   const amount = sup.dosage_amount;
   const unit = sup.dosage_unit;
@@ -32,6 +30,11 @@ function formatNutrition(sup: Supplement): string {
     parts.push(`${sup.protein_g_per_serving}g Protein`);
   }
   return parts.join(' • ');
+}
+
+
+interface SupplementListProps {
+  initialSupplements: Supplement[];
 }
 
 export default function SupplementList({ initialSupplements }: SupplementListProps) {
@@ -74,13 +77,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
   const activeSupplements = sortedSupplements.filter(s => s.is_active);
   const inactiveSupplements = sortedSupplements.filter(s => !s.is_active);
 
-  const AddButton = () => (
-    <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-md transition flex items-center gap-2">
-      <PlusCircle size={18} />
-      Add Supplement
-    </button>
-  );
-
   return (
     <div className="space-y-8">
       {/* Header with Add Button */}
@@ -91,8 +87,12 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
           </h1>
           <p className="text-slate-400 mt-1">Manage and track your daily supplement routine.</p>
         </div>
+        {/* The AddSupplementModal now wraps our NEW PrimaryButton */}
         <AddSupplementModal onSuccess={handleAddSuccess}>
-          <AddButton />
+          <PrimaryButton>
+            <PlusCircle size={18} />
+            Add Supplement
+          </PrimaryButton>
         </AddSupplementModal>
       </div>
 
@@ -110,7 +110,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
         </GlassCard>
       ) : (
         <>
-          {/* Active Supplements */}
           {activeSupplements.length > 0 && (
             <div>
               <div className="flex items-center gap-3 mb-4">
@@ -142,12 +141,7 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                           {formatNutrition(sup) && <div className="flex items-center gap-2 mb-3"><Zap size={14} className="text-cyan-400" /><span className="text-cyan-400/80 text-sm">{formatNutrition(sup)}</span></div>}
                         </div>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {/* THIS IS THE CONFIRMATION: The child is now a div */}
-                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}>
-                            <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
-                                <Pencil size={16} />
-                            </div>
-                          </EditSupplementModal>
+                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}><div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"><Pencil size={16} /></div></EditSupplementModal>
                           <RemoveButton action={handleDeleteAction(sup.id)} itemDescription={`the supplement "${sup.name}"`} />
                         </div>
                       </div>
@@ -158,7 +152,6 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
             </div>
           )}
 
-          {/* Inactive Supplements */}
           {inactiveSupplements.length > 0 && (
             <div>
               <div className="flex items-center gap-3 mb-4">
@@ -190,12 +183,7 @@ export default function SupplementList({ initialSupplements }: SupplementListPro
                           {formatNutrition(sup) && <div className="flex items-center gap-2 mb-3"><Zap size={14} className="text-slate-500" /><span className="text-slate-500 text-sm">{formatNutrition(sup)}</span></div>}
                         </div>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                           {/* THIS IS THE CONFIRMATION: The child is now a div */}
-                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}>
-                            <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
-                                <Pencil size={16} />
-                            </div>
-                          </EditSupplementModal>
+                          <EditSupplementModal supplement={sup} onSuccess={handleUpdateSuccess}><div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"><Pencil size={16} /></div></EditSupplementModal>
                           <RemoveButton action={handleDeleteAction(sup.id)} itemDescription={`the supplement "${sup.name}"`} />
                         </div>
                       </div>
