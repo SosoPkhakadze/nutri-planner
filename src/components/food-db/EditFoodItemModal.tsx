@@ -41,9 +41,10 @@ export default function EditFoodItemModal({ foodItem, children }: EditFoodItemMo
 
   return (
     <>
-      <button onClick={() => dialogRef.current?.showModal()} className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-slate-700">
+      {/* This is the fix: Changed from <button> to <div> to prevent nesting errors */}
+      <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer">
         {children}
-      </button>
+      </div>
       
       <dialog ref={dialogRef} className="bg-slate-800 text-white p-0 rounded-lg shadow-xl backdrop:bg-black/50 w-full max-w-lg">
         <div className="p-6">
