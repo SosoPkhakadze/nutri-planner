@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { deleteMeal, removeFoodFromMeal } from "@/app/actions/meals";
 import AddFoodToMealModal from "./AddFoodToMealModal";
 import EditMealFoodModal from "./EditMealFoodModal";
-import SaveMealAsTemplateModal from "../templates/SaveMealAsTemplateModal";
+import SaveMealAsTemplateModal from "../templates/SaveMealAsTemplateModal"; // Re-import
 import MealStatusToggleButton from './MealStatusToggleButton';
 import RemoveButton from "../ui/RemoveButton";
 import { DraggableMealFoodItem } from './DraggableMealFoodItem';
@@ -68,33 +68,19 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
               </span>
             </div>
             
-            {/* Nutrition breakdown */}
             <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span className="text-slate-400">{calories} kcal</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-slate-400">{protein}g P</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-slate-400">{carbs}g C</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-slate-400">{fat}g F</span>
-              </div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 bg-orange-500 rounded-full"></div><span className="text-slate-400">{calories} kcal</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 bg-red-500 rounded-full"></div><span className="text-slate-400">{protein}g P</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-slate-400">{carbs}g C</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 bg-yellow-500 rounded-full"></div><span className="text-slate-400">{fat}g F</span></div>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-4">
             <EditMealFoodModal mealFood={mf}>
-              <button className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+              <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
                 <Pencil size={14} />
-              </button>
+              </div>
             </EditMealFoodModal>
             <RemoveButton action={() => removeFoodFromMeal(mf.id)} itemDescription={`${mf.weight_g}g of ${mf.food_items.name}`} />
           </div>
@@ -107,16 +93,9 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
 
   return (
     <div className={`relative group transition-all duration-300 ${isDone ? 'opacity-75' : ''}`}>
-      {/* Card container */}
       <div className="relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-xl overflow-hidden">
-        {/* Status indicator bar */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r transition-all duration-300 ${
-          isDone 
-            ? 'from-green-500 to-emerald-500' 
-            : 'from-cyan-500 to-blue-500'
-        }`}></div>
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r transition-all duration-300 ${isDone ? 'from-green-500 to-emerald-500' : 'from-cyan-500 to-blue-500'}`}></div>
 
-        {/* Header */}
         <header 
           className="p-6 cursor-pointer hover:bg-slate-800/30 transition-colors"
           onClick={() => setIsOpen(!isOpen)}
@@ -124,64 +103,37 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <MealStatusToggleButton mealId={meal.id} status={meal.status} />
-              
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className={`text-xl font-bold transition-all duration-200 ${
-                    isDone ? 'line-through text-slate-400' : 'text-white'
-                  }`}>
-                    {meal.name}
-                  </h3>
+                  <h3 className={`text-xl font-bold transition-all duration-200 ${isDone ? 'line-through text-slate-400' : 'text-white'}`}>{meal.name}</h3>
                   <div className="flex items-center gap-2 px-3 py-1 bg-slate-700/50 rounded-full">
                     <Clock size={12} className="text-slate-400" />
                     <span className="text-xs text-slate-400 font-medium">{displayTime}</span>
                   </div>
                 </div>
-                
-                {/* Quick stats */}
                 <div className="flex items-center gap-4 text-xs text-slate-400">
-                  <div className="flex items-center gap-1">
-                    <Utensils size={12} />
-                    <span>{meal.meal_foods.length} items</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={12} />
-                    <span>{mealTotals.calories} kcal</span>
-                  </div>
+                  <div className="flex items-center gap-1"><Utensils size={12} /><span>{meal.meal_foods.length} items</span></div>
+                  <div className="flex items-center gap-1"><TrendingUp size={12} /><span>{mealTotals.calories} kcal</span></div>
                 </div>
               </div>
             </div>
 
-            {/* Summary stats */}
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <div className="text-2xl font-bold text-white mb-1">
-                  {mealTotals.calories.toLocaleString()}
-                  <span className="text-sm text-slate-400 font-normal ml-1">kcal</span>
-                </div>
+                <div className="text-2xl font-bold text-white mb-1">{mealTotals.calories.toLocaleString()}<span className="text-sm text-slate-400 font-normal ml-1">kcal</span></div>
                 <div className="flex items-center gap-3 text-xs font-medium">
                   <span className="text-red-400">{mealTotals.protein.toFixed(0)}g P</span>
                   <span className="text-blue-400">{mealTotals.carbs.toFixed(0)}g C</span>
                   <span className="text-yellow-400">{mealTotals.fat.toFixed(0)}g F</span>
                 </div>
               </div>
-              
-              <ChevronDown 
-                size={24} 
-                className={`text-slate-400 transition-transform duration-300 ${
-                  isOpen ? '' : '-rotate-90'
-                }`} 
-              />
+              <ChevronDown size={24} className={`text-slate-400 transition-transform duration-300 ${isOpen ? '' : '-rotate-90'}`} />
             </div>
           </div>
         </header>
 
-        {/* Expandable content */}
-        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-          isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-        }`}>
+        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
           <div className="px-6 pb-6">
-            {/* Food items */}
             <SortableContext items={meal.meal_foods.map(f => f.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-3 mb-6">
                 {meal.meal_foods.length > 0 ? (
@@ -192,9 +144,7 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto bg-slate-700/50 rounded-full flex items-center justify-center mb-3">
-                      <Utensils size={20} className="text-slate-400" />
-                    </div>
+                    <div className="w-12 h-12 mx-auto bg-slate-700/50 rounded-full flex items-center justify-center mb-3"><Utensils size={20} className="text-slate-400" /></div>
                     <p className="text-slate-400 font-medium">No food items yet</p>
                     <p className="text-slate-500 text-sm">Add items to track nutrition</p>
                   </div>
@@ -202,11 +152,10 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
               </div>
             </SortableContext>
 
-            {/* Actions footer */}
             <div className="flex justify-between items-center pt-4 border-t border-slate-700/50">
               <AddFoodToMealModal mealId={meal.id} foodItems={foodItems} />
-              
               <div className="flex items-center gap-3">
+                {/* THIS IS THE FIX: Button is now here */}
                 <SaveMealAsTemplateModal mealId={meal.id} hasFoods={meal.meal_foods.length > 0} />
                 <RemoveButton action={() => deleteMeal(meal.id)} itemDescription={`the "${meal.name}" meal`} />
               </div>

@@ -4,7 +4,7 @@
 import { useState, useRef, useTransition, useMemo } from 'react';
 import { GlassCard } from "@/components/ui/Card";
 import RemoveButton from "@/components/ui/RemoveButton";
-import { CalendarDays, Utensils, Clock, TrendingUp, Zap, Target, Sparkles } from "lucide-react";
+import { CalendarDays, Utensils, Clock, TrendingUp, Zap, Target, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import { applyTemplateToDate, deleteTemplate } from '@/app/actions/templates';
 import { useRouter } from 'next/navigation';
 import type { FoodItem } from '@/lib/types';
@@ -18,6 +18,7 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
   
   const today = new Date().toISOString().split('T')[0];
   const [applyDate, setApplyDate] = useState(today);
@@ -36,10 +37,11 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
     });
   };
 
-  const mealTemplateTotals = useMemo(() => {
-    if (isDayTemplate || !template.data.foods) return null;
-
-    return template.data.foods.reduce((acc: any, food: any) => {
+  const templateTotals = useMemo(() => {
+    const dataToCalculate = isDayTemplate ? template.data.flatMap((meal: any) => meal.foods) : template.data.foods;
+    if (!dataToCalculate) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    
+    return dataToCalculate.reduce((acc: any, food: any) => {
       const foodItem = foodItemsById[food.food_item_id];
       if (foodItem) {
         const multiplier = food.weight_g / 100;
@@ -56,11 +58,11 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
     <>
       <div className="group relative">
         <GlassCard className="p-0 overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-glow">
-          {/* Header gradient */}
-          <div className="relative p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-slate-700/50">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-2xl"></div>
-            
-            {/* Delete button */}
+          {/* Header */}
+          <header 
+            className="relative p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-slate-700/50 cursor-pointer"
+            onClick={() => setIsOpen(!isOpen)}
+          >
             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
               <RemoveButton
                 action={() => deleteTemplate(template.id)}
@@ -68,94 +70,68 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
               />
             </div>
 
-            <div className="relative">
-              <div className="flex items-start gap-4">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start gap-4 flex-1 min-w-0">
                 <div className="p-3 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-xl shadow-lg">
-                  {isDayTemplate ? (
-                    <CalendarDays size={24} className="text-white" />
-                  ) : (
-                    <Utensils size={24} className="text-white" />
-                  )}
+                  {isDayTemplate ? <CalendarDays size={24} className="text-white" /> : <Utensils size={24} className="text-white" />}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div>
                   <h3 className="text-xl font-bold text-white mb-2 truncate">{template.title}</h3>
                   <div className="flex items-center gap-2 text-sm text-slate-400">
                     <Clock size={14} />
-                    <span>{isDayTemplate ? 'Full Day Plan' : 'Single Meal'}</span>
+                    <span>{isDayTemplate ? `${template.data.length} Meals` : 'Single Meal'}</span>
                   </div>
                 </div>
               </div>
+              <ChevronDown size={24} className={`text-slate-400 transition-transform duration-300 ${isOpen ? '' : '-rotate-90'}`} />
+            </div>
+
+            <div className="mt-4 flex items-center gap-4 text-xs font-medium">
+              <span className="text-orange-400">{templateTotals.calories.toFixed(0)} kcal</span>
+              <span className="text-red-400">{templateTotals.protein.toFixed(0)}g P</span>
+              <span className="text-blue-400">{templateTotals.carbs.toFixed(0)}g C</span>
+              <span className="text-yellow-400">{templateTotals.fat.toFixed(0)}g F</span>
+            </div>
+          </header>
+
+          {/* Expandable Content */}
+          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isOpen ? 'max-h-[3000px]' : 'max-h-0'}`}>
+            <div className="p-6 space-y-4">
+              {isDayTemplate ? (
+                template.data.map((meal: any) => (
+                  <div key={meal.name} className="p-4 bg-slate-800/50 rounded-lg">
+                    <h4 className="font-semibold text-white mb-2">{meal.name}</h4>
+                    <ul className="space-y-1 text-sm text-slate-400">
+                      {meal.foods.map((food: any, index: number) => {
+                        const foodItem = foodItemsById[food.food_item_id];
+                        return (
+                          <li key={index} className="flex items-center gap-2">
+                            <CheckCircle2 size={12} className="text-cyan-400" />
+                            <span>{food.weight_g}g of {foodItem ? foodItem.name : '[Deleted Food]'}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                ))
+              ) : (
+                <ul className="space-y-1 text-sm text-slate-300">
+                  {template.data.foods.map((food: any, index: number) => {
+                    const foodItem = foodItemsById[food.food_item_id];
+                    return (
+                      <li key={index} className="flex items-center gap-3 p-2 bg-slate-800/50 rounded-md">
+                        <CheckCircle2 size={14} className="text-cyan-400" />
+                        <span>{food.weight_g}g of {foodItem ? foodItem.name : '[Deleted Food]'}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6">
-            {isDayTemplate ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-3">
-                  <Target size={16} className="text-cyan-400" />
-                  <span>Meals included</span>
-                </div>
-                <div className="grid gap-2">
-                  {template.data.slice(0, 4).map((meal: any, index: number) => (
-                    <div key={meal.name} className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-xl">
-                      <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
-                      <span className="text-slate-300 truncate">{meal.name}</span>
-                    </div>
-                  ))}
-                  {template.data.length > 4 && (
-                    <div className="text-center text-sm text-slate-400 py-2">
-                      +{template.data.length - 4} more meals
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              mealTemplateTotals && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-3">
-                    <TrendingUp size={16} className="text-cyan-400" />
-                    <span>Nutrition breakdown</span>
-                  </div>
-                  
-                  {/* Nutrition stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-800/30 rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span className="text-xs text-slate-400 uppercase tracking-wide">Calories</span>
-                      </div>
-                      <div className="text-lg font-bold text-white">{mealTemplateTotals.calories}</div>
-                    </div>
-                    <div className="p-3 bg-slate-800/30 rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span className="text-xs text-slate-400 uppercase tracking-wide">Protein</span>
-                      </div>
-                      <div className="text-lg font-bold text-white">{mealTemplateTotals.protein.toFixed(1)}g</div>
-                    </div>
-                    <div className="p-3 bg-slate-800/30 rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-xs text-slate-400 uppercase tracking-wide">Carbs</span>
-                      </div>
-                      <div className="text-lg font-bold text-white">{mealTemplateTotals.carbs.toFixed(1)}g</div>
-                    </div>
-                    <div className="p-3 bg-slate-800/30 rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <span className="text-xs text-slate-400 uppercase tracking-wide">Fat</span>
-                      </div>
-                      <div className="text-lg font-bold text-white">{mealTemplateTotals.fat.toFixed(1)}g</div>
-                    </div>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-
           {/* Footer */}
-          <div className="p-6 pt-0">
+          <div className="p-6 border-t border-slate-700/50">
             <button
               onClick={() => dialogRef.current?.showModal()}
               className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02]"
@@ -167,7 +143,7 @@ export default function TemplateCard({ template, foodItemsById }: TemplateCardPr
         </GlassCard>
       </div>
 
-      {/* Modal */}
+      {/* Modal - Unchanged */}
       <dialog ref={dialogRef} className="backdrop:bg-black/50 backdrop:backdrop-blur-sm p-0 bg-transparent">
         <div className="bg-slate-900/95 backdrop-blur-xl text-white p-0 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50">
           <div className="p-6 border-b border-slate-700/50 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
