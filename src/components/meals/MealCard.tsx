@@ -5,13 +5,14 @@ import { useState, useMemo } from 'react';
 import { deleteMeal, removeFoodFromMeal } from "@/app/actions/meals";
 import AddFoodToMealModal from "./AddFoodToMealModal";
 import EditMealFoodModal from "./EditMealFoodModal";
-import SaveMealAsTemplateModal from "../templates/SaveMealAsTemplateModal"; // Re-import
+import SaveMealAsTemplateModal from "../templates/SaveMealAsTemplateModal";
 import MealStatusToggleButton from './MealStatusToggleButton';
 import RemoveButton from "../ui/RemoveButton";
 import { DraggableMealFoodItem } from './DraggableMealFoodItem';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Clock, Pencil, AlertTriangle, ChevronDown, Plus, Utensils, TrendingUp } from 'lucide-react';
+import { Clock, Pencil, AlertTriangle, ChevronDown, Plus, Utensils, TrendingUp, Copy } from 'lucide-react';
 import type { Meal, FoodItem, MealFood } from '@/lib/types';
+import CopyMealModal from './CopyMealModal';
 
 interface MealCardProps {
   meal: Meal;
@@ -154,9 +155,9 @@ export default function MealCard({ meal, foodItems }: MealCardProps) {
 
             <div className="flex justify-between items-center pt-4 border-t border-slate-700/50">
               <AddFoodToMealModal mealId={meal.id} foodItems={foodItems} />
-              <div className="flex items-center gap-3">
-                {/* THIS IS THE FIX: Button is now here */}
+              <div className="flex items-center gap-2">
                 <SaveMealAsTemplateModal mealId={meal.id} hasFoods={meal.meal_foods.length > 0} />
+                <CopyMealModal mealId={meal.id} mealName={meal.name} />
                 <RemoveButton action={() => deleteMeal(meal.id)} itemDescription={`the "${meal.name}" meal`} />
               </div>
             </div>

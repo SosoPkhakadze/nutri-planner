@@ -3,11 +3,10 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Droplets, Flame, Zap, Apple, Drumstick, Plus, Calendar, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Droplets, Flame, Zap, Apple, Drumstick, Plus, Calendar, Target, Copy } from 'lucide-react';
 import Header from "@/components/Header";
 import Card from "@/components/ui/Card";
 import AddMealModal from "@/components/meals/AddMealModal";
-import DayStatusToggleButton from '@/components/ui/DayStatusToggleButton';
 import SaveDayAsTemplateModal from '@/components/templates/SaveDayAsTemplateModal';
 import { DraggableMealCard } from '@/components/meals/DraggableMealCard';
 import { reorderMeals, reorderMealFoods } from '@/app/actions/meals';
@@ -16,6 +15,7 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import type { Meal, FoodItem } from '@/lib/types';
 import WaterTrackerCard from '@/components/tracking/WaterTrackerCard';
 import SupplementTrackerCard from '@/components/supplements/SupplementTrackerCard';
+import CopyDayModal from '@/components/planner/CopyDayModal';
 
 type Supplement = {
   id: string; name: string; dosage_amount: number | null; dosage_unit: string | null;
@@ -147,6 +147,7 @@ export default function DashboardClientPage({
   const completedMeals = meals.filter(m => m.status === 'done').length;
   const totalMeals = meals.length;
   const mealCompletionRate = totalMeals > 0 ? (completedMeals / totalMeals) * 100 : 0;
+  const hasMeals = meals.length > 0;
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -169,8 +170,16 @@ export default function DashboardClientPage({
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <DayStatusToggleButton date={date.displayDateString} status={dayStatus} />
-                  <SaveDayAsTemplateModal date={date.displayDateString} hasMeals={meals.length > 0} />
+                  <CopyDayModal sourceDate={date.displayDateString} hasMeals={hasMeals}>
+                    <button
+                      disabled={!hasMeals}
+                      className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-md transition flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Copy size={16} />
+                      Copy Day
+                    </button>
+                  </CopyDayModal>
+                  <SaveDayAsTemplateModal date={date.displayDateString} hasMeals={hasMeals} />
                 </div>
               </div>
               {totalMeals > 0 && (
@@ -202,7 +211,6 @@ export default function DashboardClientPage({
                       </div>
                     </div>
                     
-                    {/* THIS IS THE FIX: Wrap the button in the modal component */}
                     <AddMealModal date={date.displayDateString}>
                       <QuickActionButton 
                         icon={<Plus size={20} />}
@@ -230,7 +238,6 @@ export default function DashboardClientPage({
                           Start building your nutrition plan by adding your first meal.
                         </p>
                       </div>
-                      {/* THIS IS THE FIX: The old, redundant button is now removed */}
                     </div>
                   )}
                 </div>
