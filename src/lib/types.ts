@@ -53,3 +53,11 @@ export interface FoodItem {
     created_at: string;
     updated_at: string;
   }
+
+  export interface WeightLog {
+    id: string;
+    user_id: string;
+    date: string; // Stored as DATE, retrieved as string
+    weight_kg: number; // Stored as NUMERIC, retrieved as number
+    created_at: string;
+  }

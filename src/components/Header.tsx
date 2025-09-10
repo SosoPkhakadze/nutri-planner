@@ -4,7 +4,7 @@
 import NoSsr from './NoSsr';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings, LogOut } from 'lucide-react';
+import { Home, Calendar, Database, FileText, Pill, Menu, X, Settings, LogOut, LineChart } from 'lucide-react';
 import { useState } from 'react';
 import SignOutButton from './SignOutButton';
 
@@ -15,6 +15,7 @@ export default function Header() {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/planner', label: 'Planner', icon: Calendar },
+    { path: '/progress', label: 'Progress', icon: LineChart },
     { path: '/food-db', label: 'Food DB', icon: Database },
     { path: '/templates', label: 'Templates', icon: FileText },
     { path: '/supplements', label: 'Supplements', icon: Pill },
@@ -86,7 +87,6 @@ export default function Header() {
             <div className="flex items-center gap-4">
               <NoSsr>
                   <div className="hidden lg:flex items-center gap-4">
-                      {/* REMOVE <ThemeToggle /> */}
                       <SignOutButton className="p-2.5 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-slate-300 hover:text-white transition-all duration-200">
                           <LogOut size={18} />
                       </SignOutButton>
@@ -128,7 +128,6 @@ export default function Header() {
             </div>
             
             <div className="mt-auto p-6 space-y-6">
-                {/* REMOVE the section for the theme toggle */}
                 <SignOutButton className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 font-semibold rounded-xl transition-colors">
                     <LogOut size={18} />
                     <span>Sign Out</span>
