@@ -7,11 +7,12 @@ import AddFoodItemModal from "@/components/food-db/AddFoodItemModal";
 import RemoveButton from "@/components/ui/RemoveButton";
 import EditFoodItemModal from "@/components/food-db/EditFoodItemModal";
 import { deleteFoodItem, cloneFoodItem } from "@/app/actions/food";
-import { Pencil, Tag, Copy, ShieldCheck, Database, Search } from "lucide-react";
+import { Pencil, Tag, Copy, ShieldCheck, Database, Search, Globe } from "lucide-react";
 import { useState, useMemo, useEffect, useTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import FoodDbLoading from "./loading";
+import ImportFoodModal from "@/components/food-db/ImportFoodModal"; // 1. Import the new modal
 
 export default function FoodDbPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -91,7 +92,16 @@ export default function FoodDbPage() {
             </h1>
             <p className="text-slate-400 mt-1">Your personal and global food items.</p>
           </div>
-          <AddFoodItemModal />
+          <div className="flex items-center gap-2">
+            {/* 2. Add the ImportFoodModal component and button */}
+            <ImportFoodModal>
+                <button className="flex items-center gap-2 px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-md transition">
+                    <Globe size={18} />
+                    Import
+                </button>
+            </ImportFoodModal>
+            <AddFoodItemModal />
+          </div>
         </div>
         
         <GlassCard className="overflow-hidden">
@@ -101,7 +111,7 @@ export default function FoodDbPage() {
               <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input 
                 type="search" 
-                placeholder="Search foods by name, brand, or tag..." 
+                placeholder="Search your foods by name, brand, or tag..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-colors"
@@ -161,7 +171,6 @@ export default function FoodDbPage() {
                         {isUserOwned ? (
                           <>
                             <EditFoodItemModal foodItem={item}>
-                              {/* This is no longer a button to avoid nesting */}
                               <div className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
                                  <Pencil size={16} />
                               </div>
@@ -190,7 +199,7 @@ export default function FoodDbPage() {
               <div className="text-center text-slate-500 py-16">
                  <Database size={32} className="mx-auto mb-4" />
                  <h3 className="font-semibold text-lg text-slate-300">No Items Found</h3>
-                 <p className="mt-1">No items in the database match your search criteria.</p>
+                 <p className="mt-1">No items in your database match your search criteria.</p>
               </div>
             )}
           </div>
