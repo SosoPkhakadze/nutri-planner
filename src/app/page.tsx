@@ -26,12 +26,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   let displayDate: Date;
   if (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)) {
-      displayDate = new Date(params.date);
+      // FIX: Explicitly parse the date string as UTC to avoid local timezone interpretation
+      displayDate = new Date(`${params.date}T00:00:00.000Z`);
   } else {
+      // This logic runs on initial load without a date param.
+      // It uses the server's time, which is fine because the client will redirect to its local "today".
       const today = new Date();
       displayDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
   }
 
+  // Fallback for any invalid date strings that might get through
   if (isNaN(displayDate.getTime())) {
       const today = new Date();
       displayDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
@@ -52,7 +56,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     dayStatusRes, 
     supplementsRes, 
     supplementLogsRes,
-    dailyGoalRes, // <-- NEW: Fetch daily goal
+    dailyGoalRes,
   ] = await Promise.all([
     supabase
       .from("meals")
@@ -85,7 +89,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       .select('supplement_id')
       .eq('user_id', user.id)
       .eq('date', displayDateString),
-    // <-- NEW: Query for the daily goal
     supabase
       .from('daily_goals')
       .select('*')
@@ -110,7 +113,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const dayStatus = (dayStatusRes.data?.status as "pending" | "complete") || "pending";
   const activeSupplements = supplementsRes.data || [];
   const loggedSupplementIds = supplementLogsRes.data?.map(log => log.supplement_id) || [];
-  const dailyGoal = dailyGoalRes.data; // <-- NEW: Get daily goal data
+  const dailyGoal = dailyGoalRes.data;
   
   const supplementMap = new Map(activeSupplements.map(s => [s.id, s]));
 
@@ -143,8 +146,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
   }
   
-  // --- NEW LOGIC: Determine final targets ---
-  // Use daily goal if it exists, otherwise fall back to baseline profile goals.
   const targets = {
     calories: dailyGoal?.calories ?? userProfile.baseline_calories ?? 2500,
     protein: dailyGoal?.protein_g ?? userProfile.baseline_macros?.protein_g ?? 150,
@@ -160,17 +161,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     foodItems,
     date: {
       displayDateString,
-      displayDateLocale: displayDate.toLocaleDateString("en-US", {
-        weekday: "long", month: "long", day: "numeric", timeZone: "UTC",
-      }),
+      // FIX: displayDateLocale is removed and will be handled by the client
       prevDay: toISODate(prevDay),
       nextDay: toISODate(nextDay),
     },
     dayStatus,
     dailyTotals: { consumedCalories, consumedProtein, consumedCarbs, consumedFat },
-    targets, // <-- Pass the final calculated targets
+    targets,
     totalWaterMl,
-    dailyWaterGoalMl, // <-- Pass the final water goal
+    dailyWaterGoalMl,
     activeSupplements,
     loggedSupplementIds,
   };
